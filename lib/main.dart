@@ -1,18 +1,30 @@
 // https://gist.github.com/netsmertia/9c588f23391c781fa1eb791f0dce0768
 
+import 'dart:async';
 import 'dart:ui';
 import 'dart:typed_data';
 import 'dart:math' as math;
+import 'dart:ui' as ui;
 
 import 'package:flutter/services.dart';
+import 'package:flutter/material.dart' show Colors;
 
 const tau = math.pi * 2;
+
+Future<ui.Image> _loadImage(List<int> buffer) {
+  final c = Completer<ui.Image>();
+  ui.decodeImageFromList(buffer, (img) => c.complete(img));
+  return c.future;
+}
 
 main() async {
   await SystemChrome.setEnabledSystemUIOverlays([]);
   await SystemChrome.setPreferredOrientations(
     [DeviceOrientation.landscapeLeft, DeviceOrientation.landscapeRight],
   );
+
+  final imgData = await rootBundle.load('img/gui.png');
+  final guiImg = await _loadImage(Uint8List.view(imgData.buffer));
 
   final pixelRatio = window.physicalSize.height / 360;
   final deviceTransform = Float64List(16)
@@ -23,6 +35,8 @@ main() async {
 
   var previous = Duration.zero;
   final world = World();
+
+  final paint = Paint();
 
   window.onBeginFrame = (now) {
     final paintBounds = Offset.zero & Size(640, 360);
@@ -35,6 +49,94 @@ main() async {
 
     world.update(t);
     world.render(t, canvas);
+
+    // 45x77
+    // 65x65
+
+    // TODO: Move values to JSON file
+
+    canvas.drawAtlas(
+      guiImg,
+      [
+        RSTransform.fromComponents(
+          rotation: 0,
+          scale: 1,
+          anchorX: 0,
+          anchorY: 0,
+          translateX: 79,
+          translateY: 177,
+        ),
+        RSTransform.fromComponents(
+          rotation: 1.5708,
+          scale: 1,
+          anchorX: 0,
+          anchorY: 0,
+          translateX: 184,
+          translateY: 237,
+        ),
+        RSTransform.fromComponents(
+          rotation: 3.1416,
+          scale: 1,
+          anchorX: 0,
+          anchorY: 0,
+          translateX: 124,
+          translateY: 342,
+        ),
+        RSTransform.fromComponents(
+          rotation: -1.5708,
+          scale: 1,
+          anchorX: 0,
+          anchorY: 0,
+          translateX: 19,
+          translateY: 282,
+        ),
+        RSTransform.fromComponents(
+          rotation: 0,
+          scale: 1,
+          anchorX: 0,
+          anchorY: 0,
+          translateX: 483,
+          translateY: 247,
+        ),
+        RSTransform.fromComponents(
+          rotation: 0,
+          scale: 1,
+          anchorX: 0,
+          anchorY: 0,
+          translateX: 548,
+          translateY: 201,
+        ),
+        RSTransform.fromComponents(
+          rotation: 0,
+          scale: 1,
+          anchorX: 0,
+          anchorY: 0,
+          translateX: 558,
+          translateY: 278,
+        ),
+      ],
+      [
+        Rect.fromLTWH(0, 0, 45, 77),
+        Rect.fromLTWH(0, 0, 45, 77),
+        Rect.fromLTWH(0, 0, 45, 77),
+        Rect.fromLTWH(0, 0, 45, 77),
+        Rect.fromLTWH(90, 0, 65, 65),
+        Rect.fromLTWH(90, 0, 65, 65),
+        Rect.fromLTWH(90, 0, 65, 65),
+      ],
+      [
+        Color(0xFF83769C),
+        Color(0xFF83769C),
+        Color(0xFF83769C),
+        Color(0xFF83769C),
+        Color(0xFF29ADFF),
+        Color(0xFF00E436),
+        Color(0xFFFF004D),
+      ],
+      BlendMode.dstIn,
+      null,
+      paint,
+    );
 
     final picture = recorder.endRecording();
     final builder = SceneBuilder()
