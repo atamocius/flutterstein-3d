@@ -5,6 +5,7 @@ import 'dart:ui';
 import 'dart:typed_data';
 import 'dart:math' as math;
 import 'dart:ui' as ui;
+import 'dart:convert';
 
 import 'package:flutter/services.dart';
 // import 'package:flutter/material.dart' show Colors;
@@ -25,6 +26,10 @@ main() async {
 
   final imgData = await rootBundle.load('img/gui.png');
   final guiImg = await _loadImage(Uint8List.view(imgData.buffer));
+
+  final engineData = jsonDecode(await rootBundle.loadString('data/data.json'));
+
+  print(engineData['controls']['areas']);
 
   final initialSize = await Future<Size>(() {
     if (window.physicalSize.isEmpty) {
@@ -68,7 +73,19 @@ main() async {
   final guiBounds = Offset.zero & initialSize / pixelRatio;
 
   final guiScale = 1 / pixelRatio * window.devicePixelRatio;
-  final buttonAreas = _initButtonAreas(guiScale, guiBounds);
+  // final buttonAreas = _initButtonAreas(guiScale, guiBounds);
+  // final buttonAreas =
+  //     _loadButtonAreas(guiScale, guiBounds, engineData['controls']['areas']);
+
+  final guiData = _loadGuiData(
+    guiScale,
+    guiBounds,
+    engineData['controls']['transforms'],
+    engineData['controls']['btnUpRects'],
+    engineData['controls']['btnDnRects'],
+    engineData['controls']['colors'],
+    engineData['controls']['areas'],
+  );
 
   int buttonState = 0;
 
@@ -101,11 +118,11 @@ main() async {
 
     _drawControls(
       canvas,
-      guiScale,
-      guiBounds,
       guiImg,
       paint,
-      buttonState,
+      guiData[0],
+      guiData[1](buttonState),
+      guiData[2],
     );
 
     // _drawButtonAreas(
@@ -138,7 +155,7 @@ main() async {
       } else {
         buttonState = _updateButtonState(
           buttonState,
-          buttonAreas,
+          guiData[3],
           Offset(d.physicalX / pixelRatio, d.physicalY / pixelRatio),
         );
       }
@@ -180,117 +197,6 @@ class World {
   }
 }
 
-List<RRect> _initButtonAreas(double scale, Rect bounds) {
-  final dpadR = 48 * scale;
-  final dpadMiniR = 20 * scale;
-  final buttonR = 50 * scale;
-  return [
-    RRect.fromRectAndRadius(
-      Rect.fromCircle(
-        center:
-            (Offset(79, -183) + Offset(45, 77) * 0.5 + Offset(0, -24)) * scale +
-                Offset(0, bounds.height),
-        radius: dpadR,
-      ),
-      Radius.circular(dpadR),
-    ),
-    RRect.fromRectAndRadius(
-      Rect.fromCircle(
-        center: (Offset(184, -123) + Offset(-77, 45) * 0.5 + Offset(24, 0)) *
-                scale +
-            Offset(0, bounds.height),
-        radius: dpadR,
-      ),
-      Radius.circular(dpadR),
-    ),
-    RRect.fromRectAndRadius(
-      Rect.fromCircle(
-        center: (Offset(124, -18) + Offset(-45, -77) * 0.5 + Offset(0, 24)) *
-                scale +
-            Offset(0, bounds.height),
-        radius: dpadR,
-      ),
-      Radius.circular(dpadR),
-    ),
-    RRect.fromRectAndRadius(
-      Rect.fromCircle(
-        center:
-            (Offset(19, -78) + Offset(77, -45) * 0.5 + Offset(-24, 0)) * scale +
-                Offset(0, bounds.height),
-        radius: dpadR,
-      ),
-      Radius.circular(dpadR),
-    ),
-
-    //
-    RRect.fromRectAndRadius(
-      Rect.fromCircle(
-        center:
-            (Offset(79, -183) + Offset(45, 77) * 0.5 + Offset(0, 15)) * scale +
-                Offset(0, bounds.height),
-        radius: dpadMiniR,
-      ),
-      Radius.circular(dpadMiniR),
-    ),
-    RRect.fromRectAndRadius(
-      Rect.fromCircle(
-        center: (Offset(184, -123) + Offset(-77, 45) * 0.5 + Offset(-15, 0)) *
-                scale +
-            Offset(0, bounds.height),
-        radius: dpadMiniR,
-      ),
-      Radius.circular(dpadMiniR),
-    ),
-    RRect.fromRectAndRadius(
-      Rect.fromCircle(
-        center: (Offset(124, -18) + Offset(-45, -77) * 0.5 + Offset(0, -15)) *
-                scale +
-            Offset(0, bounds.height),
-        radius: dpadMiniR,
-      ),
-      Radius.circular(dpadMiniR),
-    ),
-    RRect.fromRectAndRadius(
-      Rect.fromCircle(
-        center:
-            (Offset(19, -78) + Offset(77, -45) * 0.5 + Offset(15, 0)) * scale +
-                Offset(0, bounds.height),
-        radius: dpadMiniR,
-      ),
-      Radius.circular(dpadMiniR),
-    ),
-
-    //
-    RRect.fromRectAndRadius(
-      Rect.fromCircle(
-        center: (Offset(-157, -113) + Offset(65, 65) * 0.5 + Offset(-12, 1)) *
-                scale +
-            Offset(bounds.width, bounds.height),
-        radius: buttonR,
-      ),
-      Radius.circular(buttonR),
-    ),
-    RRect.fromRectAndRadius(
-      Rect.fromCircle(
-        center: (Offset(-92, -159) + Offset(65, 65) * 0.5 + Offset(5, -12)) *
-                scale +
-            Offset(bounds.width, bounds.height),
-        radius: buttonR,
-      ),
-      Radius.circular(buttonR),
-    ),
-    RRect.fromRectAndRadius(
-      Rect.fromCircle(
-        center:
-            (Offset(-82, -82) + Offset(65, 65) * 0.5 + Offset(5, 11)) * scale +
-                Offset(bounds.width, bounds.height),
-        radius: buttonR,
-      ),
-      Radius.circular(buttonR),
-    ),
-  ];
-}
-
 int _updateButtonState(int state, List<RRect> areas, Offset point) {
   for (int i = 0; i < areas.length; i++) {
     if (areas[i].contains(point)) state |= 1 << i;
@@ -304,98 +210,69 @@ _drawButtonAreas(Canvas canvas, List<RRect> spots, Paint paint) {
   }
 }
 
-_drawControls(
-  Canvas canvas,
+List<Rect> _loadRects(List rects) => rects
+    .map((r) => Rect.fromLTWH(
+        r[0].toDouble(), r[1].toDouble(), r[2].toDouble(), r[3].toDouble()))
+    .toList();
+
+List _loadGuiData(
   double scale,
   Rect bounds,
+  List transforms,
+  List upRects,
+  List downRects,
+  List colors,
+  List areas,
+) {
+  var upR = _loadRects(upRects);
+  var dnR = _loadRects(downRects);
+  return [
+    transforms
+        .map((t) => RSTransform.fromComponents(
+              rotation: t[0].toDouble(),
+              scale: scale,
+              anchorX: 0,
+              anchorY: 0,
+              translateX: t[1] * bounds.width + t[3] * scale,
+              translateY: t[2] * bounds.height + t[4] * scale,
+            ))
+        .toList(),
+    (state) => [
+          state & 17 > 0 ? dnR[0] : upR[0],
+          state & 34 > 0 ? dnR[1] : upR[1],
+          state & 68 > 0 ? dnR[2] : upR[2],
+          state & 136 > 0 ? dnR[3] : upR[3],
+          state & 256 > 0 ? dnR[4] : upR[4],
+          state & 512 > 0 ? dnR[5] : upR[5],
+          state & 1024 > 0 ? dnR[6] : upR[6],
+        ],
+    colors.map((c) => Color(c)).toList(),
+    areas
+        .map((a) => RRect.fromRectAndRadius(
+              Rect.fromCircle(
+                center: Offset(a[0], a[1]) * scale +
+                    Offset(a[3] * bounds.width, a[4] * bounds.height),
+                radius: a[2] * scale,
+              ),
+              Radius.circular(a[2] * scale),
+            ))
+        .toList()
+  ];
+}
+
+_drawControls(
+  Canvas canvas,
   Image img,
   Paint paint,
-  int state,
+  List<RSTransform> transforms,
+  List<Rect> rects,
+  List<Color> colors,
 ) {
-  // 45x77
-  // 65x65
   canvas.drawAtlas(
     img,
-    [
-      RSTransform.fromComponents(
-        rotation: 0,
-        scale: scale,
-        anchorX: 0,
-        anchorY: 0,
-        translateX: 79 * scale,
-        translateY: bounds.height - 183 * scale,
-      ),
-      RSTransform.fromComponents(
-        rotation: 1.5708,
-        scale: scale,
-        anchorX: 0,
-        anchorY: 0,
-        translateX: 184 * scale,
-        translateY: bounds.height - 123 * scale,
-      ),
-      RSTransform.fromComponents(
-        rotation: 3.1416,
-        scale: scale,
-        anchorX: 0,
-        anchorY: 0,
-        translateX: 124 * scale,
-        translateY: bounds.height - 18 * scale,
-      ),
-      RSTransform.fromComponents(
-        rotation: -1.5708,
-        scale: scale,
-        anchorX: 0,
-        anchorY: 0,
-        translateX: 19 * scale,
-        translateY: bounds.height - 78 * scale,
-      ),
-      RSTransform.fromComponents(
-        rotation: 0,
-        scale: scale,
-        anchorX: 0,
-        anchorY: 0,
-        translateX: bounds.width - 157 * scale,
-        translateY: bounds.height - 113 * scale,
-      ),
-      RSTransform.fromComponents(
-        rotation: 0,
-        scale: scale,
-        anchorX: 0,
-        anchorY: 0,
-        translateX: bounds.width - 92 * scale,
-        translateY: bounds.height - 159 * scale,
-      ),
-      RSTransform.fromComponents(
-        rotation: 0,
-        scale: scale,
-        anchorX: 0,
-        anchorY: 0,
-        translateX: bounds.width - 82 * scale,
-        translateY: bounds.height - 82 * scale,
-      ),
-    ],
-    [
-      Rect.fromLTWH(
-          state & 1 << 0 > 0 || state & 1 << 4 > 0 ? 45 : 0, 0, 45, 77),
-      Rect.fromLTWH(
-          state & 1 << 1 > 0 || state & 1 << 5 > 0 ? 45 : 0, 0, 45, 77),
-      Rect.fromLTWH(
-          state & 1 << 2 > 0 || state & 1 << 6 > 0 ? 45 : 0, 0, 45, 77),
-      Rect.fromLTWH(
-          state & 1 << 3 > 0 || state & 1 << 7 > 0 ? 45 : 0, 0, 45, 77),
-      Rect.fromLTWH(state & 1 << 8 > 0 ? 155 : 90, 0, 65, 65),
-      Rect.fromLTWH(state & 1 << 9 > 0 ? 155 : 90, 0, 65, 65),
-      Rect.fromLTWH(state & 1 << 10 > 0 ? 155 : 90, 0, 65, 65),
-    ],
-    [
-      Color(0xFF83769C),
-      Color(0xFF83769C),
-      Color(0xFF83769C),
-      Color(0xFF83769C),
-      Color(0xFFFF004D),
-      Color(0xFF29ADFF),
-      Color(0xFF00E436),
-    ],
+    transforms,
+    rects,
+    colors,
     BlendMode.dstIn,
     null,
     paint,
