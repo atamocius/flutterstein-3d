@@ -85,13 +85,13 @@ main() async {
   final btnColors = guiData[4];
   final btnAreas = guiData[5];
 
-  final guiRects = List<Rect>.from(btnUpRects);
+  final btnRects = List<Rect>.from(btnUpRects);
 
   final updateBtnRects = (state) {
-    for (int i = 0; i < guiRects.length; i++) {
-      guiRects[i] = state & btnMasks[i] > 0 ? btnDnRects[i] : btnUpRects[i];
+    for (int i = 0; i < btnRects.length; i++) {
+      btnRects[i] = state & btnMasks[i] > 0 ? btnDnRects[i] : btnUpRects[i];
     }
-    return guiRects;
+    return btnRects;
   };
 
   int buttonState = 0;
@@ -120,16 +120,15 @@ main() async {
     world.render(t, canvas);
     canvas.restore();
 
-    // TODO: Load color palette values form JSON
-    // TODO: Move values to JSON file
-
-    _drawControls(
-      canvas,
+    // Draw buttons
+    canvas.drawAtlas(
       guiImg,
-      paint,
       btnTransforms,
       updateBtnRects(buttonState),
       btnColors,
+      BlendMode.dstIn,
+      null,
+      paint,
     );
 
     // _drawButtonAreas(
@@ -258,23 +257,4 @@ List _loadGuiData(
             ))
         .toList()
   ];
-}
-
-_drawControls(
-  Canvas canvas,
-  Image img,
-  Paint paint,
-  List<RSTransform> transforms,
-  List<Rect> rects,
-  List<Color> colors,
-) {
-  canvas.drawAtlas(
-    img,
-    transforms,
-    rects,
-    colors,
-    BlendMode.dstIn,
-    null,
-    paint,
-  );
 }
