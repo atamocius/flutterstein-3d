@@ -4,19 +4,12 @@ import 'dart:async';
 import 'dart:ui';
 import 'dart:typed_data';
 import 'dart:math' as math;
-import 'dart:ui' as ui;
 import 'dart:convert';
 
 import 'package:flutter/services.dart';
 // import 'package:flutter/material.dart' show Colors;
 
 const tau = math.pi * 2;
-
-Future<ui.Image> _loadImage(List<int> buffer) {
-  final c = Completer<ui.Image>();
-  ui.decodeImageFromList(buffer, (img) => c.complete(img));
-  return c.future;
-}
 
 main() async {
   await SystemChrome.setEnabledSystemUIOverlays([]);
@@ -201,6 +194,12 @@ class World {
     canvas.drawRect(Rect.fromLTWH(-size / 2, -size / 2, size, size), white);
     canvas.restore();
   }
+}
+
+Future<Image> _loadImage(List<int> buffer) {
+  final c = Completer<Image>();
+  decodeImageFromList(buffer, (img) => c.complete(img));
+  return c.future;
 }
 
 int _updateButtonState(int state, List<RRect> areas, Offset point) {
