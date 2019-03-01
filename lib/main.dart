@@ -26,10 +26,7 @@ main() async {
 
   final imgData = await rootBundle.load('img/gui.png');
   final guiImg = await _loadImage(Uint8List.view(imgData.buffer));
-
   final engineData = jsonDecode(await rootBundle.loadString('data/data.json'));
-
-  print(engineData['controls']['areas']);
 
   final initialSize = await Future<Size>(() {
     if (window.physicalSize.isEmpty) {
@@ -53,39 +50,49 @@ main() async {
   print(
       '<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< ${initialSize / 360}');
 
-  final pixelRatio = initialSize.height / 360;
+  final screenSize = Size(640, 360);
+  final pixelRatio = initialSize.height / screenSize.height;
   final deviceTransform = Float64List(16)
     ..[0] = pixelRatio
     ..[5] = pixelRatio
     ..[10] = 1.0
     ..[15] = 1.0;
-  final offset = Offset(
-    (window.physicalSize.width / pixelRatio - 640) * 0.5,
-    (window.physicalSize.height / pixelRatio - 360) * 0.5,
-  );
+  final offset =
+      (window.physicalSize / pixelRatio - screenSize as Offset) * 0.5;
 
   var previous = Duration.zero;
   final world = World();
 
   final paint = Paint();
 
-  final bounds = Offset.zero & Size(640, 360);
-  final guiBounds = Offset.zero & initialSize / pixelRatio;
-
-  final guiScale = 1 / pixelRatio * window.devicePixelRatio;
-  // final buttonAreas = _initButtonAreas(guiScale, guiBounds);
-  // final buttonAreas =
-  //     _loadButtonAreas(guiScale, guiBounds, engineData['controls']['areas']);
+  final bounds = Offset.zero & screenSize;
 
   final guiData = _loadGuiData(
-    guiScale,
-    guiBounds,
-    engineData['controls']['transforms'],
-    engineData['controls']['btnUpRects'],
-    engineData['controls']['btnDnRects'],
-    engineData['controls']['colors'],
-    engineData['controls']['areas'],
+    1 / pixelRatio * window.devicePixelRatio,
+    Offset.zero & initialSize / pixelRatio,
+    engineData['buttons']['transforms'],
+    engineData['buttons']['upRects'],
+    engineData['buttons']['dnRects'],
+    engineData['buttons']['masks'],
+    engineData['buttons']['colors'],
+    engineData['buttons']['areas'],
   );
+
+  final btnTransforms = guiData[0];
+  final btnUpRects = guiData[1];
+  final btnDnRects = guiData[2];
+  final btnMasks = guiData[3];
+  final btnColors = guiData[4];
+  final btnAreas = guiData[5];
+
+  final guiRects = List<Rect>.from(btnUpRects);
+
+  final updateBtnRects = (state) {
+    for (int i = 0; i < guiRects.length; i++) {
+      guiRects[i] = state & btnMasks[i] > 0 ? btnDnRects[i] : btnUpRects[i];
+    }
+    return guiRects;
+  };
 
   int buttonState = 0;
 
@@ -120,9 +127,9 @@ main() async {
       canvas,
       guiImg,
       paint,
-      guiData[0],
-      guiData[1](buttonState),
-      guiData[2],
+      btnTransforms,
+      updateBtnRects(buttonState),
+      btnColors,
     );
 
     // _drawButtonAreas(
@@ -133,7 +140,7 @@ main() async {
     //     ..style = PaintingStyle.stroke,
     // );
 
-    print(buttonState);
+    // print(buttonState);
 
     final picture = recorder.endRecording();
     final builder = SceneBuilder()
@@ -155,7 +162,7 @@ main() async {
       } else {
         buttonState = _updateButtonState(
           buttonState,
-          guiData[3],
+          btnAreas,
           Offset(d.physicalX / pixelRatio, d.physicalY / pixelRatio),
         );
       }
@@ -221,11 +228,10 @@ List _loadGuiData(
   List transforms,
   List upRects,
   List downRects,
+  List masks,
   List colors,
   List areas,
 ) {
-  var upR = _loadRects(upRects);
-  var dnR = _loadRects(downRects);
   return [
     transforms
         .map((t) => RSTransform.fromComponents(
@@ -237,15 +243,9 @@ List _loadGuiData(
               translateY: t[2] * bounds.height + t[4] * scale,
             ))
         .toList(),
-    (state) => [
-          state & 17 > 0 ? dnR[0] : upR[0],
-          state & 34 > 0 ? dnR[1] : upR[1],
-          state & 68 > 0 ? dnR[2] : upR[2],
-          state & 136 > 0 ? dnR[3] : upR[3],
-          state & 256 > 0 ? dnR[4] : upR[4],
-          state & 512 > 0 ? dnR[5] : upR[5],
-          state & 1024 > 0 ? dnR[6] : upR[6],
-        ],
+    _loadRects(upRects),
+    _loadRects(downRects),
+    masks,
     colors.map((c) => Color(c)).toList(),
     areas
         .map((a) => RRect.fromRectAndRadius(
