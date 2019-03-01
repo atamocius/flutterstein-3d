@@ -96,9 +96,6 @@ main() async {
     world.render(t, canvas);
     canvas.restore();
 
-    // 45x77
-    // 65x65
-
     // TODO: Load color palette values form JSON
     // TODO: Move values to JSON file
 
@@ -111,13 +108,13 @@ main() async {
       buttonState,
     );
 
-    _drawButtonAreas(
-      canvas,
-      buttonAreas,
-      Paint()
-        ..color = Color(0xFFFFF1E8)
-        ..style = PaintingStyle.stroke,
-    );
+    // _drawButtonAreas(
+    //   canvas,
+    //   buttonAreas,
+    //   Paint()
+    //     ..color = Color(0xFFFFF1E8)
+    //     ..style = PaintingStyle.stroke,
+    // );
 
     print(buttonState);
 
@@ -315,6 +312,8 @@ _drawControls(
   Paint paint,
   int state,
 ) {
+  // 45x77
+  // 65x65
   canvas.drawAtlas(
     img,
     [
@@ -376,13 +375,17 @@ _drawControls(
       ),
     ],
     [
-      Rect.fromLTWH(0, 0, 45, 77),
-      Rect.fromLTWH(0, 0, 45, 77),
-      Rect.fromLTWH(0, 0, 45, 77),
-      Rect.fromLTWH(0, 0, 45, 77),
-      Rect.fromLTWH(90, 0, 65, 65),
-      Rect.fromLTWH(90, 0, 65, 65),
-      Rect.fromLTWH(90, 0, 65, 65),
+      Rect.fromLTWH(
+          state & 1 << 0 > 0 || state & 1 << 4 > 0 ? 45 : 0, 0, 45, 77),
+      Rect.fromLTWH(
+          state & 1 << 1 > 0 || state & 1 << 5 > 0 ? 45 : 0, 0, 45, 77),
+      Rect.fromLTWH(
+          state & 1 << 2 > 0 || state & 1 << 6 > 0 ? 45 : 0, 0, 45, 77),
+      Rect.fromLTWH(
+          state & 1 << 3 > 0 || state & 1 << 7 > 0 ? 45 : 0, 0, 45, 77),
+      Rect.fromLTWH(state & 1 << 8 > 0 ? 155 : 90, 0, 65, 65),
+      Rect.fromLTWH(state & 1 << 9 > 0 ? 155 : 90, 0, 65, 65),
+      Rect.fromLTWH(state & 1 << 10 > 0 ? 155 : 90, 0, 65, 65),
     ],
     [
       Color(0xFF83769C),
