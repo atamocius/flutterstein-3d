@@ -95,7 +95,7 @@ main() async {
 
     final delta = previous == Duration.zero ? Duration.zero : now - previous;
     previous = now;
-    final t = delta.inMicroseconds / 1000000; // Duration.microsecondsPerSecond;
+    final t = delta.inMicroseconds / Duration.microsecondsPerSecond; // 1000000
 
     // canvas.drawColor(Color(0xFF1D2B53), BlendMode.src);
     // canvas.drawPaint(Paint()..color = Color(0xFF1D2B53));
@@ -145,13 +145,18 @@ main() async {
     buttonState = 0;
     for (final d in packet.data) {
       if (d.change == PointerChange.up) {
+        // Throw away the previously set bits since we can't determine for which
+        // button the "up" action is for (the player might have moved their finger
+        // outside of the button or to a different button)
         buttonState = 0;
       } else {
-        buttonState = _updateButtonState(
-          buttonState,
-          btnAreas,
-          Offset(d.physicalX / pixelRatio, d.physicalY / pixelRatio),
-        );
+        // Update the button state
+        for (int i = 0; i < btnAreas.length; i++) {
+          if (btnAreas[i].contains(
+              Offset(d.physicalX / pixelRatio, d.physicalY / pixelRatio))) {
+            buttonState |= 1 << i;
+          }
+        }
       }
     }
   };
@@ -197,30 +202,21 @@ Future<Image> _loadImage(List<int> buffer) {
   return c.future;
 }
 
-int _updateButtonState(int state, List<RRect> areas, Offset point) {
-  for (int i = 0; i < areas.length; i++) {
-    if (areas[i].contains(point)) state |= 1 << i;
-  }
-  return state;
-}
+// _drawButtonAreas(Canvas canvas, List<RRect> spots, Paint paint) {
+//   for (int i = 0; i < spots.length; i++) {
+//     canvas.drawRRect(spots[i], paint);
+//   }
+// }
 
-_drawButtonAreas(Canvas canvas, List<RRect> spots, Paint paint) {
-  for (int i = 0; i < spots.length; i++) {
-    canvas.drawRRect(spots[i], paint);
-  }
-}
-
-List<Rect> _loadRects(List rects) => rects
-    .map((r) => Rect.fromLTWH(
-        r[0].toDouble(), r[1].toDouble(), r[2].toDouble(), r[3].toDouble()))
-    .toList();
+List<Rect> _loadRects(List rects) =>
+    rects.map((r) => Rect.fromLTWH(r[0], r[1], r[2], r[3])).toList();
 
 List _loadGuiData(double scale, Rect bounds, data) {
   final d = data['buttons'];
   return [
     (d['transforms'] as List)
         .map((t) => RSTransform.fromComponents(
-              rotation: t[0].toDouble(),
+              rotation: t[0],
               scale: scale,
               anchorX: 0,
               anchorY: 0,
