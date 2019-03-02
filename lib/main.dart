@@ -6,6 +6,7 @@ import 'dart:typed_data';
 import 'dart:math' as math;
 import 'package:flutter/services.dart';
 import 'utils.dart';
+import 'game.dart';
 
 main() async {
   await SystemChrome.setEnabledSystemUIOverlays([]);
@@ -46,7 +47,6 @@ main() async {
       (window.physicalSize / pixelRatio - screenSize as Offset) * 0.5;
 
   var previous = Duration.zero;
-  final world = World();
   final bounds = Offset.zero & screenSize;
   final paint = Paint();
 
@@ -64,15 +64,11 @@ main() async {
   final btnColors = data[4];
   final btnAreas = data[5];
 
+  final game = Game();
   int buttonState = 0;
   final btnRects = List<Rect>.from(btnUpRects);
 
-  final updateBtnRects = (state) {
-    for (int i = 0; i < btnRects.length; i++) {
-      btnRects[i] = state & btnMasks[i] > 0 ? btnDnRects[i] : btnUpRects[i];
-    }
-    return btnRects;
-  };
+  final pressed = (b) => buttonState & btnMasks[b] > 0;
 
   window.onBeginFrame = (now) {
     final recorder = PictureRecorder();
@@ -88,16 +84,17 @@ main() async {
     canvas.translate(offset.dx, offset.dy);
     canvas.drawRect(bounds, Paint()..color = Color(0xFF1D2B53));
     canvas.clipRect(bounds);
-    // print(buttonState);
-    world.update(t);
-    world.render(t, canvas);
+    game.update(t, pressed);
+    game.render(t, canvas);
     canvas.restore();
 
+    // Update button states
+    updateRects(buttonState, btnRects, btnUpRects, btnDnRects, btnMasks);
     // Draw buttons
     canvas.drawAtlas(
       guiImg,
       btnTransforms,
-      updateBtnRects(buttonState),
+      btnRects,
       btnColors,
       BlendMode.dstIn,
       null,
@@ -124,58 +121,6 @@ main() async {
 
   window.scheduleFrame();
 
-  window.onPointerDataPacket = (packet) {
-    buttonState = 0;
-    for (final d in packet.data) {
-      if (d.change == PointerChange.up) {
-        // Throw away the previously set bits since we can't determine for which
-        // button the "up" action is for (the player might have moved their finger
-        // outside of the button or to a different button)
-        buttonState = 0;
-      } else {
-        // Update the button state
-        for (int i = 0; i < btnAreas.length; i++) {
-          if (btnAreas[i].contains(
-              Offset(d.physicalX / pixelRatio, d.physicalY / pixelRatio))) {
-            buttonState |= 1 << i;
-          }
-        }
-      }
-    }
-  };
-}
-
-class World {
-  static const tau = math.pi * 2;
-  var _turn = 0.0;
-  double _x = 320;
-  double _y = 180;
-  static const rotationsPerSecond = 0.25;
-
-  // World(this._x, this._y);
-  World();
-
-  void input(double x, double y) {
-    // print('$x, $y');
-    // _x = x - 640;
-    // _y = y - 360;
-    _x = x;
-    _y = y;
-  }
-
-  void update(double t) {
-    _turn += t * rotationsPerSecond;
-  }
-
-  void render(double t, Canvas canvas) {
-    // canvas.drawPaint(Paint()..color = Color(0xff880000));
-    canvas.save();
-    canvas.translate(_x, _y);
-    // canvas.translate(320, 180);
-    // canvas.rotate(tau * _turn);
-    var white = Paint()..color = Color(0xffffffff);
-    var size = 100.0;
-    canvas.drawRect(Rect.fromLTWH(-size / 2, -size / 2, size, size), white);
-    canvas.restore();
-  }
+  window.onPointerDataPacket =
+      (p) => buttonState = handlePointers(p.data, pixelRatio, btnAreas);
 }

@@ -45,3 +45,30 @@ Future<List> loadData(String key, double scale, Rect bounds) async {
 
 List<Rect> _loadRects(List rects) =>
     rects.map((r) => Rect.fromLTWH(r[0], r[1], r[2], r[3])).toList();
+
+updateRects(int state, List<Rect> rects, upRects, dnRects, masks) {
+  for (int i = 0; i < rects.length; i++) {
+    rects[i] = state & masks[i] > 0 ? dnRects[i] : upRects[i];
+  }
+}
+
+int handlePointers(List<PointerData> data, double pixelRatio, areas) {
+  var state = 0;
+  for (final d in data) {
+    if (d.change == PointerChange.up) {
+      // Throw away the previously set bits since we can't determine for which
+      // button the "up" action is for (the player might have moved their finger
+      // outside of the button or to a different button)
+      state = 0;
+    } else {
+      // Update the button state
+      for (int i = 0; i < areas.length; i++) {
+        if (areas[i].contains(
+            Offset(d.physicalX / pixelRatio, d.physicalY / pixelRatio))) {
+          state |= 1 << i;
+        }
+      }
+    }
+  }
+  return state;
+}
