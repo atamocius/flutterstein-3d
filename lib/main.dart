@@ -63,12 +63,7 @@ main() async {
   final guiData = _loadGuiData(
     1 / pixelRatio * window.devicePixelRatio,
     Offset.zero & initialSize / pixelRatio,
-    engineData['buttons']['transforms'],
-    engineData['buttons']['upRects'],
-    engineData['buttons']['dnRects'],
-    engineData['buttons']['masks'],
-    engineData['buttons']['colors'],
-    engineData['buttons']['areas'],
+    engineData,
   );
 
   final btnTransforms = guiData[0];
@@ -220,18 +215,10 @@ List<Rect> _loadRects(List rects) => rects
         r[0].toDouble(), r[1].toDouble(), r[2].toDouble(), r[3].toDouble()))
     .toList();
 
-List _loadGuiData(
-  double scale,
-  Rect bounds,
-  List transforms,
-  List upRects,
-  List downRects,
-  List masks,
-  List colors,
-  List areas,
-) {
+List _loadGuiData(double scale, Rect bounds, data) {
+  final d = data['buttons'];
   return [
-    transforms
+    (d['transforms'] as List)
         .map((t) => RSTransform.fromComponents(
               rotation: t[0].toDouble(),
               scale: scale,
@@ -241,11 +228,11 @@ List _loadGuiData(
               translateY: t[2] * bounds.height + t[4] * scale,
             ))
         .toList(),
-    _loadRects(upRects),
-    _loadRects(downRects),
-    masks,
-    colors.map((c) => Color(c)).toList(),
-    areas
+    _loadRects(d['upRects']),
+    _loadRects(d['dnRects']),
+    d['masks'],
+    (d['colors'] as List).map((c) => Color(c)).toList(),
+    (d['areas'] as List)
         .map((a) => RRect.fromRectAndRadius(
               Rect.fromCircle(
                 center: Offset(a[0], a[1]) * scale +
