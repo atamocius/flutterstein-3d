@@ -258,12 +258,9 @@ class Game {
     }
   }
 
-  // TODO: Flip the coordinates:
-  //       - Find a way to flip the formula (y * width + x) by the y-axis
   void render(double t, Canvas canvas) {
     canvas.save();
     for (int x = 0; x < screen.x; x++) {
-      // int s = screen.x ~/ 1 - x - 1;
       raycast(canvas, x, screen.x, screen.y);
     }
     canvas.restore();
