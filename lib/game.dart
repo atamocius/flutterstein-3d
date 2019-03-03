@@ -190,7 +190,7 @@ class Game {
   // 6 : green
 
   var _rot = Matrix2.identity();
-  var _perp = Vector2.zero();
+  var _moveDir = Vector2.zero();
 
   void update(double t, Pressed pressed) {
     // for (int i = 0; i < 7; i++) {
@@ -202,49 +202,47 @@ class Game {
     final scaledRotSpeed = rotSpeed * t;
 
     if (pressed(0)) {
-      final a =
-          (pos.y ~/ 1) * mapWidth + ((pos.x + dir.x * scaledMoveSpeed) ~/ 1);
-      final b =
-          ((pos.y + dir.y * scaledMoveSpeed) ~/ 1) * mapWidth + (pos.x ~/ 1);
+      _moveDir.x = dir.x * scaledMoveSpeed;
+      _moveDir.y = dir.y * scaledMoveSpeed;
 
-      if (worldMap[a] == 0) pos.x += dir.x * scaledMoveSpeed;
-      if (worldMap[b] == 0) pos.y += dir.y * scaledMoveSpeed;
+      final a = (pos.y ~/ 1) * mapWidth + ((pos.x + _moveDir.x) ~/ 1);
+      final b = ((pos.y + _moveDir.y) ~/ 1) * mapWidth + (pos.x ~/ 1);
+
+      if (worldMap[a] == 0) pos.x += _moveDir.x;
+      if (worldMap[b] == 0) pos.y += _moveDir.y;
 
       print(pos);
     } else if (pressed(2)) {
-      final a =
-          (pos.y ~/ 1) * mapWidth + ((pos.x - dir.x * scaledMoveSpeed) ~/ 1);
-      final b =
-          ((pos.y - dir.y * scaledMoveSpeed) ~/ 1) * mapWidth + (pos.x ~/ 1);
+      _moveDir.x = dir.x * scaledMoveSpeed;
+      _moveDir.y = dir.y * scaledMoveSpeed;
 
-      if (worldMap[a] == 0) pos.x -= dir.x * scaledMoveSpeed;
-      if (worldMap[b] == 0) pos.y -= dir.y * scaledMoveSpeed;
+      final a = (pos.y ~/ 1) * mapWidth + ((pos.x - _moveDir.x) ~/ 1);
+      final b = ((pos.y - _moveDir.y) ~/ 1) * mapWidth + (pos.x ~/ 1);
+
+      if (worldMap[a] == 0) pos.x -= _moveDir.x;
+      if (worldMap[b] == 0) pos.y -= _moveDir.y;
 
       print(pos);
     }
 
     if (pressed(1)) {
-      _perp.x = dir.y;
-      _perp.y = -dir.x;
+      _moveDir.x = dir.y * scaledMoveSpeed;
+      _moveDir.y = -dir.x * scaledMoveSpeed;
 
-      final a =
-          (pos.y ~/ 1) * mapWidth + ((pos.x + _perp.x * scaledMoveSpeed) ~/ 1);
-      final b =
-          ((pos.y + _perp.y * scaledMoveSpeed) ~/ 1) * mapWidth + (pos.x ~/ 1);
+      final a = (pos.y ~/ 1) * mapWidth + ((pos.x + _moveDir.x) ~/ 1);
+      final b = ((pos.y + _moveDir.y) ~/ 1) * mapWidth + (pos.x ~/ 1);
 
-      if (worldMap[a] == 0) pos.x += _perp.x * scaledMoveSpeed;
-      if (worldMap[b] == 0) pos.y += _perp.y * scaledMoveSpeed;
+      if (worldMap[a] == 0) pos.x += _moveDir.x;
+      if (worldMap[b] == 0) pos.y += _moveDir.y;
     } else if (pressed(3)) {
-      _perp.x = dir.y;
-      _perp.y = -dir.x;
+      _moveDir.x = dir.y * scaledMoveSpeed;
+      _moveDir.y = -dir.x * scaledMoveSpeed;
 
-      final a =
-          (pos.y ~/ 1) * mapWidth + ((pos.x - _perp.x * scaledMoveSpeed) ~/ 1);
-      final b =
-          ((pos.y - _perp.y * scaledMoveSpeed) ~/ 1) * mapWidth + (pos.x ~/ 1);
+      final a = (pos.y ~/ 1) * mapWidth + ((pos.x - _moveDir.x) ~/ 1);
+      final b = ((pos.y - _moveDir.y) ~/ 1) * mapWidth + (pos.x ~/ 1);
 
-      if (worldMap[a] == 0) pos.x -= _perp.x * scaledMoveSpeed;
-      if (worldMap[b] == 0) pos.y -= _perp.y * scaledMoveSpeed;
+      if (worldMap[a] == 0) pos.x -= _moveDir.x;
+      if (worldMap[b] == 0) pos.y -= _moveDir.y;
     }
 
     if (pressed(4)) {

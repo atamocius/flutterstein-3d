@@ -81,7 +81,7 @@ main() async {
     // canvas.drawPaint(Paint()..color = Color(0xFF1D2B53));
     canvas.save();
     canvas.translate(offset.dx, offset.dy);
-    canvas.drawRect(bounds, Paint()..color = Color(0xFF1D2B53));
+    // canvas.drawRect(bounds, Paint()..color = Color(0xFF1D2B53));
     canvas.clipRect(bounds);
     game.update(t, pressed);
     game.render(t, canvas);
