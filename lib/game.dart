@@ -25,7 +25,7 @@ final rotSpeed = 2.0;
 
 // final mapSize = Vector2(24, 24);
 final mapWidth = 24, mapHeight = 24;
-final worldMap = Uint32List.fromList([
+final worldMap = [
   1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, //
   1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, //
   1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, //
@@ -50,7 +50,10 @@ final worldMap = Uint32List.fromList([
   1, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, //
   1, 4, 4, 4, 4, 4, 4, 4, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, //
   1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 //
-]);
+];
+
+// Convert coorddinates to map index (but Y is flipped)
+int toIndex(int x, int y) => (mapHeight - y - 1) * mapWidth + x;
 
 // Screen size (aka projection plane)
 final screen = Vector2(640, 360);
@@ -86,8 +89,6 @@ void raycast(Canvas canvas, int x, double w, double h) {
   // what direction to step in x or y-direction (either +1 or -1)
   int stepX = 0, stepY = 0;
 
-  int hit = 0; // was there a wall hit?
-
   // calculate step and initial sideDist
   if (rayDir.x < 0) {
     stepX = -1;
@@ -104,6 +105,7 @@ void raycast(Canvas canvas, int x, double w, double h) {
     sideDist.y = (mapY + 1.0 - pos.y) * deltaDist.y;
   }
 
+  int hit = 0; // was there a wall hit?
   int side; // was a NS or a EW wall hit?
 
   // perform DDA
@@ -120,7 +122,7 @@ void raycast(Canvas canvas, int x, double w, double h) {
     }
 
     // Check if ray has hit a wall
-    if (worldMap[mapY * mapWidth + mapX] > 0) hit = 1;
+    if (worldMap[toIndex(mapX, mapY)] > 0) hit = 1;
   }
 
   // Calculate distance projected on camera direction (Euclidean distance will give fisheye effect!)
@@ -141,7 +143,7 @@ void raycast(Canvas canvas, int x, double w, double h) {
 
   // choose wall color
   Color color;
-  switch (worldMap[mapY * mapWidth + mapX]) {
+  switch (worldMap[toIndex(mapX, mapY)]) {
     case 1:
       color = Color(side == 0 ? 0xffff0000 : 0xff7f0000);
       break; //red
@@ -205,22 +207,20 @@ class Game {
       _moveDir.x = dir.x * scaledMoveSpeed;
       _moveDir.y = dir.y * scaledMoveSpeed;
 
-      final a = (pos.y ~/ 1) * mapWidth + ((pos.x + _moveDir.x) ~/ 1);
-      final b = ((pos.y + _moveDir.y) ~/ 1) * mapWidth + (pos.x ~/ 1);
-
-      if (worldMap[a] == 0) pos.x += _moveDir.x;
-      if (worldMap[b] == 0) pos.y += _moveDir.y;
+      if (worldMap[toIndex((pos.x + _moveDir.x) ~/ 1, pos.y ~/ 1)] == 0)
+        pos.x += _moveDir.x;
+      if (worldMap[toIndex(pos.x ~/ 1, (pos.y + _moveDir.y) ~/ 1)] == 0)
+        pos.y += _moveDir.y;
 
       print(pos);
     } else if (pressed(2)) {
       _moveDir.x = dir.x * scaledMoveSpeed;
       _moveDir.y = dir.y * scaledMoveSpeed;
 
-      final a = (pos.y ~/ 1) * mapWidth + ((pos.x - _moveDir.x) ~/ 1);
-      final b = ((pos.y - _moveDir.y) ~/ 1) * mapWidth + (pos.x ~/ 1);
-
-      if (worldMap[a] == 0) pos.x -= _moveDir.x;
-      if (worldMap[b] == 0) pos.y -= _moveDir.y;
+      if (worldMap[toIndex((pos.x - _moveDir.x) ~/ 1, pos.y ~/ 1)] == 0)
+        pos.x -= _moveDir.x;
+      if (worldMap[toIndex(pos.x ~/ 1, (pos.y - _moveDir.y) ~/ 1)] == 0)
+        pos.y -= _moveDir.y;
 
       print(pos);
     }
@@ -229,20 +229,22 @@ class Game {
       _moveDir.x = dir.y * scaledMoveSpeed;
       _moveDir.y = -dir.x * scaledMoveSpeed;
 
-      final a = (pos.y ~/ 1) * mapWidth + ((pos.x + _moveDir.x) ~/ 1);
-      final b = ((pos.y + _moveDir.y) ~/ 1) * mapWidth + (pos.x ~/ 1);
+      if (worldMap[toIndex((pos.x + _moveDir.x) ~/ 1, pos.y ~/ 1)] == 0)
+        pos.x += _moveDir.x;
+      if (worldMap[toIndex(pos.x ~/ 1, (pos.y + _moveDir.y) ~/ 1)] == 0)
+        pos.y += _moveDir.y;
 
-      if (worldMap[a] == 0) pos.x += _moveDir.x;
-      if (worldMap[b] == 0) pos.y += _moveDir.y;
+      print(pos);
     } else if (pressed(3)) {
       _moveDir.x = dir.y * scaledMoveSpeed;
       _moveDir.y = -dir.x * scaledMoveSpeed;
 
-      final a = (pos.y ~/ 1) * mapWidth + ((pos.x - _moveDir.x) ~/ 1);
-      final b = ((pos.y - _moveDir.y) ~/ 1) * mapWidth + (pos.x ~/ 1);
+      if (worldMap[toIndex((pos.x - _moveDir.x) ~/ 1, pos.y ~/ 1)] == 0)
+        pos.x -= _moveDir.x;
+      if (worldMap[toIndex(pos.x ~/ 1, (pos.y - _moveDir.y) ~/ 1)] == 0)
+        pos.y -= _moveDir.y;
 
-      if (worldMap[a] == 0) pos.x -= _moveDir.x;
-      if (worldMap[b] == 0) pos.y -= _moveDir.y;
+      print(pos);
     }
 
     if (pressed(4)) {
