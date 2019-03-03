@@ -3,7 +3,6 @@
 import 'dart:async';
 import 'dart:ui';
 import 'dart:typed_data';
-import 'dart:math' as math;
 import 'package:flutter/services.dart';
 import 'utils.dart';
 import 'game.dart';
