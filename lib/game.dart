@@ -21,7 +21,7 @@ import 'package:vector_math/vector_math.dart';
 typedef bool Pressed(int btn);
 
 final moveSpeed = 5.0;
-final rotSpeed = 3.0;
+final rotSpeed = 2.0;
 
 // final mapSize = Vector2(24, 24);
 final mapWidth = 24, mapHeight = 24;
@@ -77,23 +77,16 @@ void raycast(Canvas canvas, int x, double w, double h) {
   final rayDir = dir + plane * cameraX;
 
   // which box of the map we're in
-  // TODO: Use Vector2.floor()
-  int mapX = pos.x ~/ 1;
-  int mapY = pos.y ~/ 1;
+  int mapX = pos.x.floor(), mapY = pos.y.floor();
 
   // length of ray from one x or y-side to next x or y-side
   deltaDist.x = (1 / rayDir.x).abs();
   deltaDist.y = (1 / rayDir.y).abs();
-  // double deltaDistX = (1 / rayDir.x).abs();
-  // double deltaDistY = (1 / rayDir.y).abs();
-  // double perpWallDist;
 
-  //what direction to step in x or y-direction (either +1 or -1)
-  int stepX = 0;
-  int stepY = 0;
+  // what direction to step in x or y-direction (either +1 or -1)
+  int stepX = 0, stepY = 0;
 
   int hit = 0; // was there a wall hit?
-  int side; // was a NS or a EW wall hit?
 
   // calculate step and initial sideDist
   if (rayDir.x < 0) {
@@ -110,6 +103,8 @@ void raycast(Canvas canvas, int x, double w, double h) {
     stepY = 1;
     sideDist.y = (mapY + 1.0 - pos.y) * deltaDist.y;
   }
+
+  int side; // was a NS or a EW wall hit?
 
   // perform DDA
   while (hit == 0) {
@@ -148,26 +143,21 @@ void raycast(Canvas canvas, int x, double w, double h) {
   Color color;
   switch (worldMap[mapY * mapWidth + mapX]) {
     case 1:
-      color = Color(0xffff0000);
+      color = Color(side == 0 ? 0xffff0000 : 0xff7f0000);
       break; //red
     case 2:
-      color = Color(0xff00ff00);
+      color = Color(side == 0 ? 0xff00ff00 : 0xff007f00);
       break; //green
     case 3:
-      color = Color(0xff0000ff);
+      color = Color(side == 0 ? 0xff0000ff : 0xff00007f);
       break; //blue
     case 4:
-      color = Color(0xffffffff);
+      color = Color(side == 0 ? 0xffffffff : 0xff7f7f7f);
       break; //white
     default:
-      color = Color(0xffff00ff);
+      color = Color(side == 0 ? 0xffffff00 : 0xff7f7f00);
       break; //yellow
   }
-
-  // give x and y sides different brightness
-  // if (side == 1) {
-  //   color = color / 2;
-  // }
 
   // draw the pixels of the stripe as a vertical line
   verLine(canvas, x / 1, drawStart, drawEnd, color);
@@ -257,7 +247,6 @@ class Game {
       if (worldMap[b] == 0) pos.y -= _perp.y * scaledMoveSpeed;
     }
 
-    // var f = dir.floor();
     if (pressed(4)) {
       _rot.setRotation(scaledRotSpeed);
       _rot.transform(dir);
@@ -269,6 +258,8 @@ class Game {
     }
   }
 
+  // TODO: Flip the coordinates:
+  //       - Find a way to flip the formula (y * width + x) by the y-axis
   void render(double t, Canvas canvas) {
     canvas.save();
     for (int x = 0; x < screen.x; x++) {
