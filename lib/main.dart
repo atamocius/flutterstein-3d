@@ -87,7 +87,7 @@ main() async {
     // canvas.drawRect(bounds, Paint()..color = Color(0xFF1D2B53));
     canvas.clipRect(bounds);
     game.update(t, pressed);
-    game.render(t, canvas);
+    game.render(canvas);
     canvas.restore();
 
     // Update button states
