@@ -18,9 +18,6 @@ import 'dart:ui';
 import 'dart:typed_data';
 import 'package:vector_math/vector_math.dart';
 
-// Screen size (aka projection plane)
-const screenW = 640.0, screenH = 360.0;
-
 // Map size
 const mapW = 24, mapH = 24;
 
@@ -28,6 +25,9 @@ const mapW = 24, mapH = 24;
 int toMapIndex(num x, num y) => (mapH - (y ~/ 1) - 1) * mapW + (x ~/ 1);
 
 class Raycaster {
+  // Screen size (aka projection plane)
+  final Vector2 _screen;
+
   // Camera position
   final Vector2 pos; // = Vector2(22, 12);
 
@@ -47,15 +47,15 @@ class Raycaster {
 
   final _rayDir = Vector2.zero();
 
-  Raycaster(this.pos, this.dir) {
+  Raycaster(this._screen, this.pos, this.dir) {
     plane = Vector2(dir.y, -dir.x)
       ..normalize()
       ..scale(_planeHalfW);
   }
 
   void render(Canvas canvas, List<int> map) {
-    for (int x = 0; x < screenW; x++) {
-      _raycast(canvas, map, x, screenW, screenH);
+    for (int x = 0; x < _screen.x; x++) {
+      _raycast(canvas, map, x, _screen.x, _screen.y);
     }
   }
 

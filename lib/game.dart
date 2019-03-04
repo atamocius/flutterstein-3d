@@ -34,13 +34,20 @@ final worldMap = [
 ];
 
 class Game {
-  final _raycaster = Raycaster(Vector2(22, 12), Vector2(-1, 0));
+  // TODO: Inject raycaster instance
+  final _raycaster = Raycaster(
+    Vector2(640, 360),
+    Vector2(22, 12),
+    Vector2(-1, 0),
+  );
   final _rotMat = Matrix2.identity();
   final _moveVec = Vector2.zero();
 
   final _moveSpeed = 5.0;
   final _rotSpeed = 2.0;
 
+  // TODO: Pass level data instead of just the map array
+  //       - Level data should also include textures
   void update(double t, Pressed btn) {
     var forward = btn(0),
         backward = btn(2),
