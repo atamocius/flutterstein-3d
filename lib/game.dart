@@ -1,18 +1,3 @@
-// https://www.youtube.com/watch?v=eOCQfxRQ2pY
-
-// https://permadi.com/1996/05/ray-casting-tutorial-table-of-contents/
-// https://github.com/permadi-com/ray-cast
-
-// https://github.com/ssloy/tinyraycaster/wiki
-
-// https://lodev.org/cgtutor/
-// https://lodev.org/cgtutor/raycasting.html
-// https://lodev.org/cgtutor/raycasting2.html
-// https://lodev.org/cgtutor/raycasting3.html
-// https://lodev.org/cgtutor/raycasting4.html
-
-// https://github.com/mdn/canvas-raycaster
-
 import 'dart:math';
 import 'dart:ui';
 import 'dart:typed_data';
@@ -49,7 +34,7 @@ final worldMap = [
 ];
 
 class Game {
-  final _raycaster = Raycaster();
+  final _raycaster = Raycaster(Vector2(22, 12), Vector2(-1, 0));
   final _rotMat = Matrix2.identity();
   final _moveVec = Vector2.zero();
 

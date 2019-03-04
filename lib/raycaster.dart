@@ -1,3 +1,18 @@
+// https://www.youtube.com/watch?v=eOCQfxRQ2pY
+
+// https://permadi.com/1996/05/ray-casting-tutorial-table-of-contents/
+// https://github.com/permadi-com/ray-cast
+
+// https://github.com/ssloy/tinyraycaster/wiki
+
+// https://lodev.org/cgtutor/
+// https://lodev.org/cgtutor/raycasting.html
+// https://lodev.org/cgtutor/raycasting2.html
+// https://lodev.org/cgtutor/raycasting3.html
+// https://lodev.org/cgtutor/raycasting4.html
+
+// https://github.com/mdn/canvas-raycaster
+
 import 'dart:math';
 import 'dart:ui';
 import 'dart:typed_data';
@@ -14,13 +29,15 @@ int toMapIndex(num x, num y) => (mapH - (y ~/ 1) - 1) * mapW + (x ~/ 1);
 
 class Raycaster {
   // Camera position
-  final pos = Vector2(22, 12);
+  final Vector2 pos; // = Vector2(22, 12);
 
   // Direction vector
-  final dir = Vector2(-1, 0);
+  final Vector2 dir; // = Vector2(-1, 0);
 
   // 2D raycaster version of camera plane
-  final plane = Vector2(0, 0.66);
+  Vector2 plane; // = Vector2(0, 0.66);
+
+  final _planeHalfW = 0.85;
 
   // length of ray from current position to next x or y-side
   final _sideDist = Vector2.zero();
@@ -30,10 +47,11 @@ class Raycaster {
 
   final _rayDir = Vector2.zero();
 
-  // TODO: Compute _plane from _dir (normalized) and FOV value
-  // Raycaster(this.pos, this.dir, double fov) {
-
-  // }
+  Raycaster(this.pos, this.dir) {
+    plane = Vector2(dir.y, -dir.x)
+      ..normalize()
+      ..scale(_planeHalfW);
+  }
 
   void render(Canvas canvas, List<int> map) {
     for (int x = 0; x < screenW; x++) {
@@ -117,19 +135,19 @@ class Raycaster {
     Color color;
     switch (map[toMapIndex(mapX, mapY)]) {
       case 1:
-        color = Color(side == 0 ? 0xffff0000 : 0xff7f0000);
+        color = Color(side == 1 ? 0xffff0000 : 0xff7f0000);
         break; //red
       case 2:
-        color = Color(side == 0 ? 0xff00ff00 : 0xff007f00);
+        color = Color(side == 1 ? 0xff00ff00 : 0xff007f00);
         break; //green
       case 3:
-        color = Color(side == 0 ? 0xff0000ff : 0xff00007f);
+        color = Color(side == 1 ? 0xff0000ff : 0xff00007f);
         break; //blue
       case 4:
-        color = Color(side == 0 ? 0xffffffff : 0xff7f7f7f);
+        color = Color(side == 1 ? 0xffffffff : 0xff7f7f7f);
         break; //white
       default:
-        color = Color(side == 0 ? 0xffffff00 : 0xff7f7f00);
+        color = Color(side == 1 ? 0xffffff00 : 0xff7f7f00);
         break; //yellow
     }
 
