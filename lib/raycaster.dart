@@ -10,7 +10,7 @@ const screenW = 640.0, screenH = 360.0;
 const mapW = 24, mapH = 24;
 
 // Convert coordinates to map index (but Y is flipped)
-int toMapIndex(int x, int y) => (mapH - y - 1) * mapW + x;
+int toMapIndex(num x, num y) => (mapH - (y ~/ 1) - 1) * mapW + (x ~/ 1);
 
 class Raycaster {
   // Camera position
@@ -31,7 +31,9 @@ class Raycaster {
   final _rayDir = Vector2.zero();
 
   // TODO: Compute _plane from _dir (normalized) and FOV value
-  Raycaster();
+  // Raycaster(this.pos, this.dir, double fov) {
+
+  // }
 
   void render(Canvas canvas, List<int> map) {
     for (int x = 0; x < screenW; x++) {
@@ -132,20 +134,20 @@ class Raycaster {
     }
 
     // draw the pixels of the stripe as a vertical line
-    _verLine(canvas, x / 1, drawStart, drawEnd, color);
+    _verLine(canvas, x, drawStart, drawEnd, color);
   }
 
   void _verLine(
     Canvas canvas,
-    double x,
+    int x,
     double start,
     double end,
     Color color,
   ) {
     // TODO: Use drawRawPoints
     canvas.drawLine(
-      Offset(x, start),
-      Offset(x, end),
+      Offset(x / 1, start),
+      Offset(x / 1, end),
       Paint()
         ..color = color
         ..strokeWidth = 1,

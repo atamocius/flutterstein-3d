@@ -98,9 +98,7 @@ class Game {
   }
 
   void _translate(List<int> map, Vector2 p) {
-    if (map[toMapIndex((p.x + _moveVec.x) ~/ 1, p.y ~/ 1)] == 0)
-      p.x += _moveVec.x;
-    if (map[toMapIndex(p.x ~/ 1, (p.y + _moveVec.y) ~/ 1)] == 0)
-      p.y += _moveVec.y;
+    if (map[toMapIndex(p.x + _moveVec.x, p.y)] == 0) p.x += _moveVec.x;
+    if (map[toMapIndex(p.x, p.y + _moveVec.y)] == 0) p.y += _moveVec.y;
   }
 }
