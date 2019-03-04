@@ -73,11 +73,18 @@ final sideDist = Vector2.zero();
 // length of ray from one x or y-side to next x or y-side
 final deltaDist = Vector2.zero();
 
+final rayDir = Vector2.zero();
+
 // w = screen width, h = screen height
 void raycast(Canvas canvas, int x, double w, double h) {
   // calculate ray position and direction
   final cameraX = 2 * x / w - 1; // x-coordinate in camera space
-  final rayDir = dir + plane * cameraX;
+
+  // dir + plane * cameraX;
+  rayDir.setZero();
+  rayDir
+    ..addScaled(plane, cameraX)
+    ..add(dir);
 
   // which box of the map we're in
   int mapX = pos.x.floor(), mapY = pos.y.floor();
@@ -191,8 +198,15 @@ class Game {
   // 5 : blue
   // 6 : green
 
-  var _rot = Matrix2.identity();
-  var _moveDir = Vector2.zero();
+  final _rotMat = Matrix2.identity();
+  final _moveDir = Vector2.zero();
+  var _move = 0.0;
+  var _rot = 0.0;
+
+  void _translate(List<int> map, Vector2 p) {
+    if (map[toIndex((p.x + _moveDir.x) ~/ 1, p.y ~/ 1)] == 0) p.x += _moveDir.x;
+    if (map[toIndex(p.x ~/ 1, (p.y + _moveDir.y) ~/ 1)] == 0) p.y += _moveDir.y;
+  }
 
   void update(double t, Pressed pressed) {
     // for (int i = 0; i < 7; i++) {
@@ -200,61 +214,33 @@ class Game {
     //     print(i);
     //   }
     // }
-    final scaledMoveSpeed = moveSpeed * t;
-    final scaledRotSpeed = rotSpeed * t;
+    _move = moveSpeed * t;
+    _rot = rotSpeed * t;
+    _moveDir.setZero();
 
-    if (pressed(0)) {
-      _moveDir.x = dir.x * scaledMoveSpeed;
-      _moveDir.y = dir.y * scaledMoveSpeed;
+    var forward = pressed(0),
+        backward = pressed(2),
+        strafeLeft = pressed(1),
+        strafeRight = pressed(3),
+        rotLeft = pressed(4),
+        rotRight = pressed(5);
 
-      if (worldMap[toIndex((pos.x + _moveDir.x) ~/ 1, pos.y ~/ 1)] == 0)
-        pos.x += _moveDir.x;
-      if (worldMap[toIndex(pos.x ~/ 1, (pos.y + _moveDir.y) ~/ 1)] == 0)
-        pos.y += _moveDir.y;
-
-      print(pos);
-    } else if (pressed(2)) {
-      _moveDir.x = dir.x * scaledMoveSpeed;
-      _moveDir.y = dir.y * scaledMoveSpeed;
-
-      if (worldMap[toIndex((pos.x - _moveDir.x) ~/ 1, pos.y ~/ 1)] == 0)
-        pos.x -= _moveDir.x;
-      if (worldMap[toIndex(pos.x ~/ 1, (pos.y - _moveDir.y) ~/ 1)] == 0)
-        pos.y -= _moveDir.y;
-
-      print(pos);
+    if (forward || backward) {
+      _moveDir.x += dir.x * _move * (forward ? 1 : -1);
+      _moveDir.y += dir.y * _move * (forward ? 1 : -1);
+      _translate(worldMap, pos);
     }
 
-    if (pressed(1)) {
-      _moveDir.x = dir.y * scaledMoveSpeed;
-      _moveDir.y = -dir.x * scaledMoveSpeed;
-
-      if (worldMap[toIndex((pos.x + _moveDir.x) ~/ 1, pos.y ~/ 1)] == 0)
-        pos.x += _moveDir.x;
-      if (worldMap[toIndex(pos.x ~/ 1, (pos.y + _moveDir.y) ~/ 1)] == 0)
-        pos.y += _moveDir.y;
-
-      print(pos);
-    } else if (pressed(3)) {
-      _moveDir.x = dir.y * scaledMoveSpeed;
-      _moveDir.y = -dir.x * scaledMoveSpeed;
-
-      if (worldMap[toIndex((pos.x - _moveDir.x) ~/ 1, pos.y ~/ 1)] == 0)
-        pos.x -= _moveDir.x;
-      if (worldMap[toIndex(pos.x ~/ 1, (pos.y - _moveDir.y) ~/ 1)] == 0)
-        pos.y -= _moveDir.y;
-
-      print(pos);
+    if (strafeLeft || strafeRight) {
+      _moveDir.x += dir.y * _move * (strafeLeft ? 1 : -1);
+      _moveDir.y += -dir.x * _move * (strafeLeft ? 1 : -1);
+      _translate(worldMap, pos);
     }
 
-    if (pressed(4)) {
-      _rot.setRotation(scaledRotSpeed);
-      _rot.transform(dir);
-      _rot.transform(plane);
-    } else if (pressed(5)) {
-      _rot.setRotation(-scaledRotSpeed);
-      _rot.transform(dir);
-      _rot.transform(plane);
+    if (rotLeft || rotRight) {
+      _rotMat.setRotation(_rot * (rotLeft ? 1 : -1));
+      _rotMat.transform(dir);
+      _rotMat.transform(plane);
     }
   }
 
