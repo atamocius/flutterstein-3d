@@ -53,6 +53,7 @@ main() async {
   final paint = Paint();
 
   final guiImg = await loadImage('img/gui.png');
+  final textures = await loadImage('img/wolf3d.png');
   final data = await loadData(
     'data/data.json',
     1 / pixelRatio * window.devicePixelRatio,
