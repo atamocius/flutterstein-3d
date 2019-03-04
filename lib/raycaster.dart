@@ -26,7 +26,7 @@ int toMapIndex(num x, num y) => (mapH - (y ~/ 1) - 1) * mapW + (x ~/ 1);
 
 class Raycaster {
   // Screen size (aka projection plane)
-  final Vector2 _screen;
+  final Size _screen;
 
   // Camera position
   final Vector2 pos; // = Vector2(22, 12);
@@ -54,8 +54,8 @@ class Raycaster {
   }
 
   void render(Canvas canvas, List<int> map) {
-    for (int x = 0; x < _screen.x; x++) {
-      _raycast(canvas, map, x, _screen.x, _screen.y);
+    for (int x = 0; x < _screen.width; x++) {
+      _raycast(canvas, map, x, _screen.width, _screen.height);
     }
   }
 

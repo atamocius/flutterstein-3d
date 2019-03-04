@@ -3,51 +3,28 @@ import 'dart:ui';
 import 'dart:typed_data';
 import 'package:vector_math/vector_math.dart';
 import 'raycaster.dart';
+import 'level.dart';
 
 typedef bool Pressed(int btn);
 
-final worldMap = [
-  1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, //
-  1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, //
-  1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, //
-  1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, //
-  1, 0, 0, 0, 0, 0, 2, 2, 2, 2, 2, 0, 0, 0, 0, 3, 0, 3, 0, 3, 0, 0, 0, 1, //
-  1, 0, 0, 0, 0, 0, 2, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, //
-  1, 0, 0, 0, 0, 0, 2, 0, 0, 0, 2, 0, 0, 0, 0, 3, 0, 0, 0, 3, 0, 0, 0, 1, //
-  1, 0, 0, 0, 0, 0, 2, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, //
-  1, 0, 0, 0, 0, 0, 2, 2, 0, 2, 2, 0, 0, 0, 0, 3, 0, 3, 0, 3, 0, 0, 0, 1, //
-  1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, //
-  1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, //
-  1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, //
-  1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, //
-  1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, //
-  1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, //
-  1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, //
-  1, 4, 4, 4, 4, 4, 4, 4, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, //
-  1, 4, 0, 4, 0, 0, 0, 0, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, //
-  1, 4, 0, 0, 0, 0, 5, 0, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, //
-  1, 4, 0, 4, 0, 0, 0, 0, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, //
-  1, 4, 0, 4, 4, 4, 4, 4, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, //
-  1, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, //
-  1, 4, 4, 4, 4, 4, 4, 4, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, //
-  1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 //
-];
-
 class Game {
-  // TODO: Inject raycaster instance
-  final _raycaster = Raycaster(
-    Vector2(640, 360),
-    Vector2(22, 12),
-    Vector2(-1, 0),
-  );
+  final Raycaster _raycaster;
+
+  final Level _level;
+
   final _rotMat = Matrix2.identity();
   final _moveVec = Vector2.zero();
 
   final _moveSpeed = 5.0;
   final _rotSpeed = 2.0;
 
-  // TODO: Pass level data instead of just the map array
-  //       - Level data should also include textures
+  Game(Size screen, this._level)
+      : _raycaster = Raycaster(
+          screen,
+          _level.pos.clone(),
+          _level.dir.clone(),
+        );
+
   void update(double t, Pressed btn) {
     var forward = btn(0),
         backward = btn(2),
@@ -67,13 +44,13 @@ class Game {
     if (forward || backward) {
       _moveVec.x = dir.x * move * (forward ? 1 : -1);
       _moveVec.y = dir.y * move * (forward ? 1 : -1);
-      _translate(worldMap, pos);
+      _translate(_level.map, pos);
     }
 
     if (strafeLeft || strafeRight) {
       _moveVec.x = dir.y * move * (strafeLeft ? 1 : -1);
       _moveVec.y = -dir.x * move * (strafeLeft ? 1 : -1);
-      _translate(worldMap, pos);
+      _translate(_level.map, pos);
     }
 
     if (rotLeft || rotRight) {
@@ -85,7 +62,7 @@ class Game {
 
   void render(Canvas canvas) {
     canvas.save();
-    _raycaster.render(canvas, worldMap);
+    _raycaster.render(canvas, _level.map);
     canvas.restore();
   }
 
