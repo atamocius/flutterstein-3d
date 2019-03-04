@@ -35,6 +35,9 @@ main() async {
   print(
       '<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< ${initialSize / 360}');
 
+  // TODO: Always check to use the larger value between W & H as width
+  // TODO: Add "start/pause" button
+  // TODO: Implement swipe left/right to handle weapon switching
   final screenSize = Size(640, 360);
   final pixelRatio = initialSize.height / screenSize.height;
   final deviceTransform = Float64List(16)

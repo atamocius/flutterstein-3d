@@ -179,6 +179,7 @@ void verLine(
   double end,
   Color color,
 ) {
+  // TODO: Use drawRawPoints
   canvas.drawLine(
     Offset(x, start),
     Offset(x, end),
@@ -199,41 +200,36 @@ class Game {
   // 6 : green
 
   final _rotMat = Matrix2.identity();
-  final _moveDir = Vector2.zero();
+  final _moveVec = Vector2.zero();
   var _move = 0.0;
   var _rot = 0.0;
 
   void _translate(List<int> map, Vector2 p) {
-    if (map[toIndex((p.x + _moveDir.x) ~/ 1, p.y ~/ 1)] == 0) p.x += _moveDir.x;
-    if (map[toIndex(p.x ~/ 1, (p.y + _moveDir.y) ~/ 1)] == 0) p.y += _moveDir.y;
+    if (map[toIndex((p.x + _moveVec.x) ~/ 1, p.y ~/ 1)] == 0) p.x += _moveVec.x;
+    if (map[toIndex(p.x ~/ 1, (p.y + _moveVec.y) ~/ 1)] == 0) p.y += _moveVec.y;
   }
 
   void update(double t, Pressed pressed) {
-    // for (int i = 0; i < 7; i++) {
-    //   if (pressed(i)) {
-    //     print(i);
-    //   }
-    // }
-    _move = moveSpeed * t;
-    _rot = rotSpeed * t;
-    _moveDir.setZero();
-
     var forward = pressed(0),
         backward = pressed(2),
         strafeLeft = pressed(1),
         strafeRight = pressed(3),
         rotLeft = pressed(4),
-        rotRight = pressed(5);
+        rotRight = pressed(5),
+        action = pressed(6);
+
+    _move = moveSpeed * t;
+    _rot = rotSpeed * t;
 
     if (forward || backward) {
-      _moveDir.x += dir.x * _move * (forward ? 1 : -1);
-      _moveDir.y += dir.y * _move * (forward ? 1 : -1);
+      _moveVec.x = dir.x * _move * (forward ? 1 : -1);
+      _moveVec.y = dir.y * _move * (forward ? 1 : -1);
       _translate(worldMap, pos);
     }
 
     if (strafeLeft || strafeRight) {
-      _moveDir.x += dir.y * _move * (strafeLeft ? 1 : -1);
-      _moveDir.y += -dir.x * _move * (strafeLeft ? 1 : -1);
+      _moveVec.x = dir.y * _move * (strafeLeft ? 1 : -1);
+      _moveVec.y = -dir.x * _move * (strafeLeft ? 1 : -1);
       _translate(worldMap, pos);
     }
 
