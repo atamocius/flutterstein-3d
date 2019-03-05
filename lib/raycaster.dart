@@ -173,11 +173,12 @@ class Raycaster {
 
     final scale = lineHeight / texH;
     final i = x * _stride;
+    final camHeight = h * 0.5; //h / 2; // TODO: Implement cam bobble
     _sliverTransforms
       ..[i + 0] = scale
       ..[i + 1] = 0
       ..[i + 2] = x / 1
-      ..[i + 3] = -lineHeight / 2 + h / 2;
+      ..[i + 3] = -lineHeight / 2 + camHeight;
     _sliverRects
       ..[i + 0] = texOffX / 1 + texX
       ..[i + 1] = texOffY / 1
