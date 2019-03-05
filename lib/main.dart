@@ -94,12 +94,12 @@ main() async {
     Vector2(-1, 0),
   );
 
-  final btnTransforms = data[0];
-  final btnUpRects = data[1];
-  final btnDnRects = data[2];
-  final btnMasks = data[3];
-  final btnColors = data[4];
-  final btnAreas = data[5];
+  final btnTransforms = data[0],
+      btnUpRects = data[1],
+      btnDnRects = data[2],
+      btnMasks = data[3],
+      btnColors = data[4],
+      btnAreas = data[5];
 
   final game = Game(screenSize, testLevel);
   int buttonState = 0;
@@ -113,7 +113,8 @@ main() async {
 
     final delta = previous == Duration.zero ? Duration.zero : now - previous;
     previous = now;
-    final t = delta.inMicroseconds / 1000000; // Duration.microsecondsPerSecond;
+    // t = delta.inMicroseconds / Duration.microsecondsPerSecond;
+    final t = delta.inMicroseconds / 1000000;
 
     // canvas.drawColor(Color(0xFF1D2B53), BlendMode.src);
     // canvas.drawPaint(Paint()..color = Color(0xFF1D2B53));
