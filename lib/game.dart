@@ -23,6 +23,8 @@ class Game {
           screen,
           _level.pos.clone(),
           _level.dir.clone(),
+          _level.atlas,
+          _level.atlasSize,
         );
 
   void update(double t, Pressed btn) {

@@ -21,6 +21,9 @@ import 'package:vector_math/vector_math.dart';
 // Map size
 const mapW = 24, mapH = 24;
 
+// Texture size
+const texW = 64, texH = 64;
+
 // Convert coordinates to map index (but Y is flipped)
 int toMapIndex(num x, num y) => (mapH - (y ~/ 1) - 1) * mapW + (x ~/ 1);
 
@@ -47,19 +50,43 @@ class Raycaster {
 
   final _rayDir = Vector2.zero();
 
-  Raycaster(this._screen, this.pos, this.dir) {
+  final Image _atlas;
+  final int _atlasSize;
+
+  // Draw buffers
+  Float32List _sliverTransforms;
+  Float32List _sliverRects;
+  Int32List _sliverColors;
+  final _sliverPaint = Paint();
+  final _stride = 4;
+
+  Raycaster(this._screen, this.pos, this.dir, this._atlas, this._atlasSize) {
     plane = Vector2(dir.y, -dir.x)
       ..normalize()
       ..scale(_planeHalfW);
+
+    _sliverTransforms = Float32List(_screen.width ~/ 1 * 4);
+    _sliverRects = Float32List(_screen.width ~/ 1 * 4);
+    _sliverColors = Int32List(_screen.width ~/ 1);
   }
 
   void render(Canvas canvas, List<int> map) {
     for (int x = 0; x < _screen.width; x++) {
-      _raycast(canvas, map, x, _screen.width, _screen.height);
+      _raycast(map, x, _screen.width, _screen.height);
     }
+
+    canvas.drawRawAtlas(
+      _atlas,
+      _sliverTransforms,
+      _sliverRects,
+      _sliverColors,
+      BlendMode.modulate,
+      null,
+      _sliverPaint,
+    );
   }
 
-  void _raycast(Canvas canvas, List<int> map, int x, double w, double h) {
+  void _raycast(List<int> map, int x, double w, double h) {
     // calculate ray position and direction
     final cameraX = 2 * x / w - 1; // x-coordinate in camera space
 
@@ -125,50 +152,37 @@ class Raycaster {
     // Calculate height of line to draw on screen
     final lineHeight = h / perpWallDist;
 
-    // Calculate lowest and highest pixel to fill in current stripe
-    var drawStart = -lineHeight / 2 + h / 2;
-    if (drawStart < 0) drawStart = 0;
-    var drawEnd = lineHeight / 2 + h / 2;
-    if (drawEnd >= h) drawEnd = h - 1;
+    // Calculate value of wallX (where exactly the wall was hit)
+    double wallX;
+    if (side == 0)
+      wallX = pos.y + perpWallDist * _rayDir.y;
+    else
+      wallX = pos.x + perpWallDist * _rayDir.x;
+    wallX -= wallX.floor();
 
-    // choose wall color
-    Color color;
-    switch (map[toMapIndex(mapX, mapY)]) {
-      case 1:
-        color = Color(side == 1 ? 0xffff0000 : 0xff7f0000);
-        break; //red
-      case 2:
-        color = Color(side == 1 ? 0xff00ff00 : 0xff007f00);
-        break; //green
-      case 3:
-        color = Color(side == 1 ? 0xff0000ff : 0xff00007f);
-        break; //blue
-      case 4:
-        color = Color(side == 1 ? 0xffffffff : 0xff7f7f7f);
-        break; //white
-      default:
-        color = Color(side == 1 ? 0xffffff00 : 0xff7f7f00);
-        break; //yellow
-    }
+    // x coordinate on the texture
+    int texX = (wallX * texW).floor();
+    if (side == 0 && _rayDir.x > 0) texX = texW - texX - 1;
+    if (side == 1 && _rayDir.y < 0) texX = texW - texX - 1;
 
-    // draw the pixels of the stripe as a vertical line
-    _verLine(canvas, x, drawStart, drawEnd, color);
-  }
+    // texturing calculations
+    // 1 subtracted from it so that texture 0 can be used!
+    int texNum = map[toMapIndex(mapX, mapY)] - 1;
+    int texOffX = texNum % _atlasSize * texW;
+    int texOffY = texNum ~/ _atlasSize * texW;
 
-  void _verLine(
-    Canvas canvas,
-    int x,
-    double start,
-    double end,
-    Color color,
-  ) {
-    // TODO: Use drawRawPoints
-    canvas.drawLine(
-      Offset(x / 1, start),
-      Offset(x / 1, end),
-      Paint()
-        ..color = color
-        ..strokeWidth = 1,
-    );
+    final scale = lineHeight / texH;
+    final i = x * _stride;
+    _sliverTransforms
+      ..[i + 0] = scale
+      ..[i + 1] = 0
+      ..[i + 2] = x / 1
+      ..[i + 3] = -lineHeight / 2 + h / 2;
+    _sliverRects
+      ..[i + 0] = texOffX / 1 + texX
+      ..[i + 1] = texOffY / 1
+      ..[i + 2] = texOffX / 1 + texX + 1 / scale
+      ..[i + 3] = texOffY / 1 + texH;
+    _sliverColors[x] = side == 1 ? 0xffffffff : 0xffc8c8c8;
   }
 }

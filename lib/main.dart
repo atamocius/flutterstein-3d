@@ -89,6 +89,7 @@ main() async {
       1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 //
     ],
     await loadImage('img/wolf3d.png'),
+    4,
     Vector2(22, 12),
     Vector2(-1, 0),
   );
