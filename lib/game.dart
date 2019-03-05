@@ -47,12 +47,14 @@ class Game {
       _moveVec.x = dir.x * move * (forward ? 1 : -1);
       _moveVec.y = dir.y * move * (forward ? 1 : -1);
       _translate(_level.map, pos);
+      print(pos);
     }
 
     if (strafeLeft || strafeRight) {
       _moveVec.x = dir.y * move * (strafeLeft ? 1 : -1);
       _moveVec.y = -dir.x * move * (strafeLeft ? 1 : -1);
       _translate(_level.map, pos);
+      print(pos);
     }
 
     if (rotLeft || rotRight) {
