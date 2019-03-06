@@ -7,14 +7,11 @@ import 'buttons.dart';
 class Game {
   final Raycaster _rc;
   final Level _lvl;
-
-  final _rotMat = Matrix2.identity();
-  final _moveVec = Vector2.zero();
-
-  final _moveSpeed = 3.0;
-  final _rotSpeed = 1.7;
-
-  final _wallPadding = 0.2;
+  final _rotMat = Matrix2.identity(),
+      _moveVec = Vector2.zero(),
+      _moveSpeed = 3.0,
+      _rotSpeed = 1.7,
+      _wallPadding = 0.2;
 
   Game(Size screen, this._lvl) : _rc = Raycaster(screen, _lvl);
 
@@ -27,12 +24,11 @@ class Game {
         rotR = btn(5),
         shoot = btn(6);
 
-    var move = _moveSpeed * t;
-    var rot = _rotSpeed * t;
-
-    var dir = _rc.dir;
-    var pos = _rc.pos;
-    var plane = _rc.plane;
+    var move = _moveSpeed * t,
+        rot = _rotSpeed * t,
+        dir = _rc.dir,
+        pos = _rc.pos,
+        plane = _rc.plane;
 
     if (fwd || bwd) {
       _moveVec.x = dir.x * move * (fwd ? 1 : -1);

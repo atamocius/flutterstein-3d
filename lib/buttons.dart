@@ -5,16 +5,13 @@ typedef bool Pressed(int btn);
 class Buttons {
   final double _pixelRatio;
   final List<RSTransform> _transforms;
-  final List<Rect> _upRects;
-  final List<Rect> _dnRects;
+  final List<Rect> _upRects, _dnRects, _rects;
   final List<int> _masks;
   final List<Color> _colors;
   final List<RRect> _areas;
   final Image _atlas;
-
-  int _state;
-  final List<Rect> _rects;
   final Paint _paint;
+  int _state;
 
   Buttons(
     this._pixelRatio,
@@ -45,26 +42,21 @@ class Buttons {
 
   void update(List<PointerData> data) {
     _state = 0;
-    for (final d in data) {
-      if (d.change == PointerChange.up) {
+    for (final d in data)
+      if (d.change == PointerChange.up)
         // Throw away the previously set bits since we can't determine for which
         // button the "up" action is for (the player might have moved their finger
         // outside of the button or to a different button)
         _state = 0;
-      } else {
+      else
         // Update the button state
-        for (int i = 0; i < _areas.length; i++) {
+        for (int i = 0; i < _areas.length; i++)
           if (_areas[i].contains(
-              Offset(d.physicalX / _pixelRatio, d.physicalY / _pixelRatio))) {
+              Offset(d.physicalX / _pixelRatio, d.physicalY / _pixelRatio)))
             _state |= 1 << i;
-          }
-        }
-      }
-    }
 
     // Update rects
-    for (int i = 0; i < _rects.length; i++) {
+    for (int i = 0; i < _rects.length; i++)
       _rects[i] = _state & _masks[i] > 0 ? _dnRects[i] : _upRects[i];
-    }
   }
 }

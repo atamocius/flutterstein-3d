@@ -65,8 +65,7 @@ class Raycaster {
       ..normalize()
       ..scale(_planeHalfW);
 
-    final w = _screen.width ~/ 1;
-    final s = _stride;
+    final w = _screen.width ~/ 1, s = _stride;
     _sliverTransforms = Float32List(w * s);
     _sliverRects = Float32List(w * s);
     _sliverColors = Int32List(w);
@@ -124,8 +123,8 @@ class Raycaster {
       _sideDist.y = (mapY + 1.0 - pos.y) * _deltaDist.y;
     }
 
-    int hit = 0; // was there a wall hit?
-    int side; // was a NS or a EW wall hit?
+    int hit = 0, // was there a wall hit?
+        side; // was a NS or a EW wall hit?
 
     // perform DDA
     while (hit == 0) {
@@ -145,21 +144,17 @@ class Raycaster {
     }
 
     // Calculate distance projected on camera direction (Euclidean distance will give fisheye effect!)
-    double perpWallDist;
-    if (side == 0)
-      perpWallDist = (mapX - pos.x + (1 - stepX) / 2) / _rayDir.x;
-    else
-      perpWallDist = (mapY - pos.y + (1 - stepY) / 2) / _rayDir.y;
+    final perpWallDist = side == 0
+        ? (mapX - pos.x + (1 - stepX) / 2) / _rayDir.x
+        : (mapY - pos.y + (1 - stepY) / 2) / _rayDir.y;
 
     // Calculate height of line to draw on screen
     final lineHeight = h / perpWallDist;
 
     // Calculate value of wallX (where exactly the wall was hit)
-    double wallX;
-    if (side == 0)
-      wallX = pos.y + perpWallDist * _rayDir.y;
-    else
-      wallX = pos.x + perpWallDist * _rayDir.x;
+    var wallX = side == 0
+        ? pos.y + perpWallDist * _rayDir.y
+        : pos.x + perpWallDist * _rayDir.x;
     wallX -= wallX.floor();
 
     // x coordinate on the texture
@@ -169,15 +164,15 @@ class Raycaster {
 
     // texturing calculations
     // 1 subtracted from it so that texture 0 can be used!
-    int texNum = _lvl.get(mapX, mapY) - 1;
-    int texOffX = texNum % _atlasSize * texW;
-    int texOffY = texNum ~/ _atlasSize * texW;
+    final texNum = _lvl.get(mapX, mapY) - 1,
+        texOffX = texNum % _atlasSize * texW,
+        texOffY = texNum ~/ _atlasSize * texW;
 
-    final scale = lineHeight / texH;
-    final i = x * _stride;
-    final camHeight = h * 0.5; //h / 2; // TODO: Implement cam bobble
-    final oX = texOffX / 1;
-    final oY = texOffY / 1;
+    final i = x * _stride,
+        scale = lineHeight / texH,
+        oX = texOffX / 1,
+        oY = texOffY / 1,
+        camHeight = h * 0.5; //h / 2; // TODO: Implement cam bobble
     _sliverTransforms
       ..[i + 0] = scale
       ..[i + 1] = 0

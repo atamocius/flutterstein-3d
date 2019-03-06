@@ -12,8 +12,7 @@ import 'buttons.dart';
 main() async {
   await SystemChrome.setEnabledSystemUIOverlays([]);
   await SystemChrome.setPreferredOrientations(
-    [DeviceOrientation.landscapeLeft, DeviceOrientation.landscapeRight],
-  );
+      [DeviceOrientation.landscapeLeft, DeviceOrientation.landscapeRight]);
 
   // print(
   //     '>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> ${window.physicalSize}');
@@ -35,8 +34,8 @@ main() async {
   final btnAtlas = await loadImage('img/gui.png');
 
   final handleMetricsChanged = () async {
-    final size = window.physicalSize;
-    final pixelRatio = size.shortestSide / viewSize.shortestSide;
+    final size = window.physicalSize,
+        pixelRatio = size.shortestSide / viewSize.shortestSide;
 
     deviceTransform
       ..[0] = pixelRatio
@@ -131,11 +130,12 @@ main() async {
       ..addPicture(Offset.zero, picture)
       ..pop();
 
-    window.render(builder.build());
-    window.scheduleFrame();
+    window
+      ..render(builder.build())
+      ..scheduleFrame();
   };
 
-  window.scheduleFrame();
-
-  window.onPointerDataPacket = (p) => btns.update(p.data);
+  window
+    ..scheduleFrame()
+    ..onPointerDataPacket = (p) => btns.update(p.data);
 }

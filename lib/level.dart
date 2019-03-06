@@ -4,16 +4,14 @@ import 'package:vector_math/vector_math.dart';
 class Level {
   // The map data
   final List<int> _map;
-  // The map's width and height (only square maps are supported)
-  final int mapSize;
   // The atlas texture
   final Image atlas;
-  // The atlas' tile width and height (only square atlases are supported)
-  final int atlasSize;
+  final int
+      mapSize, // The map's width and height (only square maps are supported)
+      atlasSize; // The atlas' tile width and height (only square atlases are supported)
   // Camera position
-  final Vector2 pos;
-  // Direction vector
-  final Vector2 dir;
+  final Vector2 pos, // Camera position
+      dir; // Direction vector
 
   Level(
     this._map,
