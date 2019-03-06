@@ -94,19 +94,18 @@ main() async {
 
   final game = Game(viewSize, testLevel);
   final zero = Duration.zero;
-  var previous = zero;
+  var prev = zero;
   final paint = Paint();
 
-  int buttonState = 0;
   final btnRects = List<Rect>(btns.count);
-  final pressed = (b) => buttonState & btns.masks[b] > 0;
+  final pressed = (b) => btns.state & btns.masks[b] > 0;
 
   window.onBeginFrame = (now) {
     final recorder = PictureRecorder();
     final canvas = Canvas(recorder, bounds);
 
-    final delta = previous == zero ? zero : now - previous;
-    previous = now;
+    final delta = prev == zero ? zero : now - prev;
+    prev = now;
     final t = delta.inMicroseconds / 1000000;
 
     // canvas.drawColor(Color(0xFF1D2B53), BlendMode.src);
@@ -120,7 +119,7 @@ main() async {
     canvas.restore();
 
     // Update button states
-    btns.updateRects(btnRects, buttonState);
+    btns.updateRects(btnRects);
     // Draw buttons
     canvas.drawAtlas(
       btns.atlas,
@@ -152,5 +151,5 @@ main() async {
 
   window.scheduleFrame();
 
-  window.onPointerDataPacket = (p) => buttonState = btns.updateState(p.data);
+  window.onPointerDataPacket = (p) => btns.state = btns.updateState(p.data);
 }

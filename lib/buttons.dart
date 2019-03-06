@@ -11,6 +11,8 @@ class Buttons {
   final List<RRect> areas;
   final Image atlas;
 
+  int state;
+
   Buttons(
     this.count,
     this._pixelRatio,
@@ -21,16 +23,16 @@ class Buttons {
     this.colors,
     this.areas,
     this.atlas,
-  );
+  ) : state = 0;
 
-  updateRects(List<Rect> rects, int state) {
+  updateRects(List<Rect> rects) {
     for (int i = 0; i < rects.length; i++) {
       rects[i] = state & masks[i] > 0 ? _dnRects[i] : _upRects[i];
     }
   }
 
   int updateState(List<PointerData> data) {
-    var state = 0;
+    state = 0;
     for (final d in data) {
       if (d.change == PointerChange.up) {
         // Throw away the previously set bits since we can't determine for which
