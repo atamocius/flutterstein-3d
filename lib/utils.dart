@@ -22,9 +22,7 @@ Future<Buttons> loadButtons(
 ) async {
   final data = jsonDecode(await rootBundle.loadString(key));
   final d = data['buttons'];
-  final m = d['masks'].cast<int>();
   return Buttons(
-    m.length,
     pixelRatio,
     (d['transforms'] as List)
         .map((t) => RSTransform.fromComponents(
@@ -38,7 +36,7 @@ Future<Buttons> loadButtons(
         .toList(),
     _loadRects(d['upRects']),
     _loadRects(d['dnRects']),
-    m,
+    d['masks'].cast<int>(),
     (d['colors'] as List).map((c) => Color(c)).toList(),
     (d['areas'] as List)
         .map((a) => RRect.fromRectAndRadius(

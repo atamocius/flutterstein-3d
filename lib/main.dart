@@ -95,10 +95,6 @@ main() async {
   final game = Game(viewSize, testLevel);
   final zero = Duration.zero;
   var prev = zero;
-  final paint = Paint();
-
-  final btnRects = List<Rect>(btns.count);
-  final pressed = (b) => btns.state & btns.masks[b] > 0;
 
   window.onBeginFrame = (now) {
     final recorder = PictureRecorder();
@@ -114,22 +110,12 @@ main() async {
     canvas.translate(offset.dx, offset.dy);
     // canvas.drawRect(bounds, Paint()..color = Color(0xFF1D2B53));
     canvas.clipRect(bounds);
-    game.update(t, pressed);
+    game.update(t, btns.pressed);
     game.render(canvas);
     canvas.restore();
 
-    // Update button states
-    btns.updateRects(btnRects);
     // Draw buttons
-    canvas.drawAtlas(
-      btns.atlas,
-      btns.transforms,
-      btnRects,
-      btns.colors,
-      BlendMode.dstIn,
-      null,
-      paint,
-    );
+    btns.render(canvas);
 
     // Draw button hit areas
     // final debugPaint = Paint()
@@ -151,5 +137,5 @@ main() async {
 
   window.scheduleFrame();
 
-  window.onPointerDataPacket = (p) => btns.state = btns.updateState(p.data);
+  window.onPointerDataPacket = (p) => btns.update(p.data);
 }

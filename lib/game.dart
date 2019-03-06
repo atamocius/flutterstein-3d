@@ -2,8 +2,7 @@ import 'dart:ui';
 import 'package:vector_math/vector_math.dart';
 import 'raycaster.dart';
 import 'level.dart';
-
-typedef bool Button(int btn);
+import 'buttons.dart';
 
 class Game {
   final Raycaster _rc;
@@ -19,7 +18,7 @@ class Game {
 
   Game(Size screen, this._lvl) : _rc = Raycaster(screen, _lvl);
 
-  void update(double t, Button btn) {
+  void update(double t, Pressed btn) {
     var fwd = btn(0),
         bwd = btn(2),
         stfL = btn(1),

@@ -1,54 +1,70 @@
 import 'dart:ui';
 
+typedef bool Pressed(int btn);
+
 class Buttons {
-  final int count;
   final double _pixelRatio;
-  final List<RSTransform> transforms;
+  final List<RSTransform> _transforms;
   final List<Rect> _upRects;
   final List<Rect> _dnRects;
-  final List<int> masks;
-  final List<Color> colors;
-  final List<RRect> areas;
-  final Image atlas;
+  final List<int> _masks;
+  final List<Color> _colors;
+  final List<RRect> _areas;
+  final Image _atlas;
 
-  int state;
+  int _state;
+  final List<Rect> _rects;
+  final Paint _paint;
 
   Buttons(
-    this.count,
     this._pixelRatio,
-    this.transforms,
+    this._transforms,
     this._upRects,
     this._dnRects,
-    this.masks,
-    this.colors,
-    this.areas,
-    this.atlas,
-  ) : state = 0;
+    this._masks,
+    this._colors,
+    this._areas,
+    this._atlas,
+  )   : _state = 0,
+        _rects = List<Rect>.from(_upRects),
+        _paint = Paint();
 
-  updateRects(List<Rect> rects) {
-    for (int i = 0; i < rects.length; i++) {
-      rects[i] = state & masks[i] > 0 ? _dnRects[i] : _upRects[i];
-    }
+  void render(Canvas canvas) {
+    canvas.drawAtlas(
+      _atlas,
+      _transforms,
+      _rects,
+      _colors,
+      BlendMode.dstIn,
+      null,
+      _paint,
+    );
   }
 
-  int updateState(List<PointerData> data) {
-    state = 0;
+  bool pressed(int btn) => _state & _masks[btn] > 0;
+
+  void update(List<PointerData> data) {
+    _state = 0;
     for (final d in data) {
       if (d.change == PointerChange.up) {
         // Throw away the previously set bits since we can't determine for which
         // button the "up" action is for (the player might have moved their finger
         // outside of the button or to a different button)
-        state = 0;
+        _state = 0;
       } else {
         // Update the button state
-        for (int i = 0; i < areas.length; i++) {
-          if (areas[i].contains(
+        for (int i = 0; i < _areas.length; i++) {
+          if (_areas[i].contains(
               Offset(d.physicalX / _pixelRatio, d.physicalY / _pixelRatio))) {
-            state |= 1 << i;
+            _state |= 1 << i;
           }
         }
       }
     }
-    return state;
+
+    // Update rects
+    for (int i = 0; i < _rects.length; i++) {
+      _rects[i] = _state & _masks[i] > 0 ? _dnRects[i] : _upRects[i];
+    }
   }
 }
