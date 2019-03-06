@@ -36,21 +36,21 @@ main() async {
 
   final handleMetricsChanged = () async {
     final size = window.physicalSize;
-    final pr = size.shortestSide / viewSize.shortestSide;
+    final pixelRatio = size.shortestSide / viewSize.shortestSide;
 
     deviceTransform
-      ..[0] = pr
-      ..[5] = pr
+      ..[0] = pixelRatio
+      ..[5] = pixelRatio
       ..[10] = 1
       ..[15] = 1;
 
-    offset = (size / pr - viewSize as Offset) * 0.5;
+    offset = (size / pixelRatio - viewSize as Offset) * 0.5;
 
     btns = await loadButtons(
       'data/buttons.json',
-      pr,
-      1 / pr * window.devicePixelRatio,
-      Offset.zero & size / pr,
+      pixelRatio,
+      1 / pixelRatio * window.devicePixelRatio,
+      Offset.zero & size / pixelRatio,
       btnAtlas,
     );
   };
