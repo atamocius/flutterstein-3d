@@ -11,9 +11,9 @@ import 'level.dart';
 
 main() async {
   await SystemChrome.setEnabledSystemUIOverlays([]);
-  await SystemChrome.setPreferredOrientations(
-    [DeviceOrientation.landscapeLeft, DeviceOrientation.landscapeRight],
-  );
+  // await SystemChrome.setPreferredOrientations(
+  //   [DeviceOrientation.landscapeLeft, DeviceOrientation.landscapeRight],
+  // );
 
   final initialSize = await Future<Size>(() {
     if (window.physicalSize.isEmpty) {
@@ -28,6 +28,8 @@ main() async {
     return window.physicalSize;
   });
 
+  // window.onMetricsChanged = () {};
+
   print(
       '>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> ${window.physicalSize}');
   print(
@@ -41,7 +43,10 @@ main() async {
   // TODO: Add "start/pause" button
   // TODO: Implement swipe left/right to handle weapon switching
   final screenSize = Size(640, 360);
+  // Landscape
   final pixelRatio = initialSize.height / screenSize.height;
+  // Portrait
+  // final pixelRatio = initialSize.width / screenSize.width;
   final deviceTransform = Float64List(16)
     ..[0] = pixelRatio
     ..[5] = pixelRatio
@@ -54,9 +59,10 @@ main() async {
   final bounds = Offset.zero & screenSize;
   final paint = Paint();
 
-  final guiImg = await loadImage('img/gui.png');
-  final data = await loadData(
-    'data/data.json',
+  final btns = await loadButtons(
+    'data/buttons.json',
+    'img/gui.png',
+    pixelRatio,
     1 / pixelRatio * window.devicePixelRatio,
     Offset.zero & initialSize / pixelRatio,
   );
@@ -95,18 +101,11 @@ main() async {
     Vector2(-1, 0),
   );
 
-  final btnTransforms = data[0],
-      btnUpRects = data[1],
-      btnDnRects = data[2],
-      btnMasks = data[3],
-      btnColors = data[4],
-      btnAreas = data[5];
-
   final game = Game(screenSize, testLevel);
   int buttonState = 0;
-  final btnRects = List<Rect>.from(btnUpRects);
+  final btnRects = List<Rect>(btns.count);
 
-  final pressed = (b) => buttonState & btnMasks[b] > 0;
+  final pressed = (b) => buttonState & btns.masks[b] > 0;
 
   window.onBeginFrame = (now) {
     final recorder = PictureRecorder();
@@ -114,7 +113,6 @@ main() async {
 
     final delta = previous == Duration.zero ? Duration.zero : now - previous;
     previous = now;
-    // t = delta.inMicroseconds / Duration.microsecondsPerSecond;
     final t = delta.inMicroseconds / 1000000;
 
     // canvas.drawColor(Color(0xFF1D2B53), BlendMode.src);
@@ -128,13 +126,13 @@ main() async {
     canvas.restore();
 
     // Update button states
-    updateRects(buttonState, btnRects, btnUpRects, btnDnRects, btnMasks);
+    btns.updateRects(btnRects, buttonState);
     // Draw buttons
     canvas.drawAtlas(
-      guiImg,
-      btnTransforms,
+      btns.atlas,
+      btns.transforms,
       btnRects,
-      btnColors,
+      btns.colors,
       BlendMode.dstIn,
       null,
       paint,
@@ -160,6 +158,5 @@ main() async {
 
   window.scheduleFrame();
 
-  window.onPointerDataPacket =
-      (p) => buttonState = handlePointers(p.data, pixelRatio, btnAreas);
+  window.onPointerDataPacket = (p) => buttonState = btns.updateState(p.data);
 }

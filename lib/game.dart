@@ -13,7 +13,7 @@ class Game {
   final _moveVec = Vector2.zero();
 
   final _moveSpeed = 3.0;
-  final _rotSpeed = 2.0;
+  final _rotSpeed = 1.7;
 
   final _wallPadding = 0.2;
 
