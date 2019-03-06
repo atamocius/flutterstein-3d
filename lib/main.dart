@@ -88,6 +88,7 @@ main() async {
       2, 2, 0, 0, 0, 0, 0, 2, 2, 2, 0, 0, 0, 2, 2, 0, 5, 0, 5, 0, 0, 0, 5, 5, //
       2, 2, 2, 2, 1, 2, 2, 2, 2, 2, 2, 1, 2, 2, 2, 5, 5, 5, 5, 5, 5, 5, 5, 5, //
     ],
+    24,
     await loadImage('img/wolf3d.png'),
     4,
     Vector2(22, 10), // origin the bottom-left of the map array

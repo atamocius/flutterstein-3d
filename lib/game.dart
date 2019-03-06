@@ -1,16 +1,13 @@
-import 'dart:math';
 import 'dart:ui';
-import 'dart:typed_data';
 import 'package:vector_math/vector_math.dart';
 import 'raycaster.dart';
 import 'level.dart';
 
-typedef bool Pressed(int btn);
+typedef bool Button(int btn);
 
 class Game {
-  final Raycaster _raycaster;
-
-  final Level _level;
+  final Raycaster _rc;
+  final Level _lvl;
 
   final _rotMat = Matrix2.identity();
   final _moveVec = Vector2.zero();
@@ -20,47 +17,38 @@ class Game {
 
   final _wallPadding = 0.2;
 
-  Game(Size screen, this._level)
-      : _raycaster = Raycaster(
-          screen,
-          _level.pos.clone(),
-          _level.dir.clone(),
-          _level.atlas,
-          _level.atlasSize,
-        );
+  Game(Size screen, this._lvl) : _rc = Raycaster(screen, _lvl);
 
-  void update(double t, Pressed btn) {
-    var forward = btn(0),
-        backward = btn(2),
-        strafeLeft = btn(1),
-        strafeRight = btn(3),
-        rotLeft = btn(4),
-        rotRight = btn(5),
-        action = btn(6);
+  void update(double t, Button btn) {
+    var fwd = btn(0),
+        bwd = btn(2),
+        stfL = btn(1),
+        stfR = btn(3),
+        rotL = btn(4),
+        rotR = btn(5),
+        shoot = btn(6);
 
     var move = _moveSpeed * t;
     var rot = _rotSpeed * t;
 
-    var dir = _raycaster.dir;
-    var pos = _raycaster.pos;
-    var plane = _raycaster.plane;
+    var dir = _rc.dir;
+    var pos = _rc.pos;
+    var plane = _rc.plane;
 
-    if (forward || backward) {
-      _moveVec.x = dir.x * move * (forward ? 1 : -1);
-      _moveVec.y = dir.y * move * (forward ? 1 : -1);
-      _translate(_level.map, pos);
-      // print(pos);
+    if (fwd || bwd) {
+      _moveVec.x = dir.x * move * (fwd ? 1 : -1);
+      _moveVec.y = dir.y * move * (fwd ? 1 : -1);
+      _translate(_lvl, pos, _moveVec, _wallPadding);
     }
 
-    if (strafeLeft || strafeRight) {
-      _moveVec.x = dir.y * move * (strafeLeft ? 1 : -1);
-      _moveVec.y = -dir.x * move * (strafeLeft ? 1 : -1);
-      _translate(_level.map, pos);
-      // print(pos);
+    if (stfL || stfR) {
+      _moveVec.x = dir.y * move * (stfL ? 1 : -1);
+      _moveVec.y = -dir.x * move * (stfL ? 1 : -1);
+      _translate(_lvl, pos, _moveVec, _wallPadding);
     }
 
-    if (rotLeft || rotRight) {
-      _rotMat.setRotation(rot * (rotLeft ? 1 : -1));
+    if (rotL || rotR) {
+      _rotMat.setRotation(rot * (rotL ? 1 : -1));
       _rotMat.transform(dir);
       _rotMat.transform(plane);
     }
@@ -68,35 +56,34 @@ class Game {
 
   void render(Canvas canvas) {
     canvas.save();
-    _raycaster.render(canvas, _level.map);
+    _rc.render(canvas);
     canvas.restore();
   }
 
-  void _translate(List<int> map, Vector2 p) {
-    if (map[toMapIndex(p.x + _moveVec.x, p.y)] == 0) p.x += _moveVec.x;
-    if (map[toMapIndex(p.x, p.y + _moveVec.y)] == 0) p.y += _moveVec.y;
+  void _translate(Level l, Vector2 p, Vector2 d, double w) {
+    // Forecast if pos will hit a wall and then translate if it doesn't
+    // aka Collision detection
+    if (l.get(p.x + d.x, p.y) == 0) p.x += d.x;
+    if (l.get(p.x, p.y + d.y) == 0) p.y += d.y;
 
-    var posFracX = p.x - p.x.floor();
-    var posFracY = p.y - p.y.floor();
+    // Get the fractional part of the position coordinates
+    final fX = p.x - p.x ~/ 1;
+    final fY = p.y - p.y ~/ 1;
 
     // Add some padding between the camera and the walls
-    if (_moveVec.x < 0) {
+    if (d.x < 0) {
       // Moving left
-      if (map[toMapIndex(p.x - 1, p.y)] > 0 && posFracX < _wallPadding)
-        p.x += _wallPadding - posFracX;
+      if (l.get(p.x - 1, p.y) > 0 && fX < w) p.x += w - fX;
     } else {
       // Moving right
-      if (map[toMapIndex(p.x + 1, p.y)] > 0 && posFracX > 1 - _wallPadding)
-        p.x -= posFracX - (1 - _wallPadding);
+      if (l.get(p.x + 1, p.y) > 0 && fX > 1 - w) p.x -= fX - (1 - w);
     }
-    if (_moveVec.y < 0) {
+    if (d.y < 0) {
       // Moving down
-      if (map[toMapIndex(p.x, p.y - 1)] > 0 && posFracY < _wallPadding)
-        p.y += _wallPadding - posFracY;
+      if (l.get(p.x, p.y - 1) > 0 && fY < w) p.y += w - fY;
     } else {
       // Moving up
-      if (map[toMapIndex(p.x, p.y + 1)] > 0 && posFracY > 1 - _wallPadding)
-        p.y -= posFracY - (1 - _wallPadding);
+      if (l.get(p.x, p.y + 1) > 0 && fY > 1 - w) p.y -= fY - (1 - w);
     }
   }
 }

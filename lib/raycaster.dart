@@ -13,21 +13,17 @@
 
 // https://github.com/mdn/canvas-raycaster
 
-import 'dart:math';
 import 'dart:ui';
 import 'dart:typed_data';
 import 'package:vector_math/vector_math.dart';
-
-// Map size
-const mapW = 24, mapH = 24;
+import 'level.dart';
 
 // Texture size
 const texW = 64, texH = 64;
 
-// Convert coordinates to map index (but Y is flipped)
-int toMapIndex(num x, num y) => (mapH - (y ~/ 1) - 1) * mapW + (x ~/ 1);
-
 class Raycaster {
+  final Level _lvl;
+
   // Screen size (aka projection plane)
   final Size _screen;
 
@@ -60,7 +56,11 @@ class Raycaster {
   final _sliverPaint = Paint();
   final _stride = 4;
 
-  Raycaster(this._screen, this.pos, this.dir, this._atlas, this._atlasSize) {
+  Raycaster(this._screen, this._lvl)
+      : pos = _lvl.pos.clone(),
+        dir = _lvl.dir.clone(),
+        _atlas = _lvl.atlas,
+        _atlasSize = _lvl.atlasSize {
     plane = Vector2(dir.y, -dir.x)
       ..normalize()
       ..scale(_planeHalfW);
@@ -70,9 +70,9 @@ class Raycaster {
     _sliverColors = Int32List(_screen.width ~/ 1);
   }
 
-  void render(Canvas canvas, List<int> map) {
+  void render(Canvas canvas) {
     for (int x = 0; x < _screen.width; x++) {
-      _raycast(map, x, _screen.width, _screen.height);
+      _raycast(x, _screen.width, _screen.height);
     }
 
     canvas.drawRawAtlas(
@@ -86,7 +86,7 @@ class Raycaster {
     );
   }
 
-  void _raycast(List<int> map, int x, double w, double h) {
+  void _raycast(int x, double w, double h) {
     // calculate ray position and direction
     final cameraX = 2 * x / w - 1; // x-coordinate in camera space
 
@@ -139,7 +139,7 @@ class Raycaster {
       }
 
       // Check if ray has hit a wall
-      if (map[toMapIndex(mapX, mapY)] > 0) hit = 1;
+      if (_lvl.get(mapX, mapY) > 0) hit = 1;
     }
 
     // Calculate distance projected on camera direction (Euclidean distance will give fisheye effect!)
@@ -167,23 +167,25 @@ class Raycaster {
 
     // texturing calculations
     // 1 subtracted from it so that texture 0 can be used!
-    int texNum = map[toMapIndex(mapX, mapY)] - 1;
+    int texNum = _lvl.get(mapX, mapY) - 1;
     int texOffX = texNum % _atlasSize * texW;
     int texOffY = texNum ~/ _atlasSize * texW;
 
     final scale = lineHeight / texH;
     final i = x * _stride;
     final camHeight = h * 0.5; //h / 2; // TODO: Implement cam bobble
+    final oX = texOffX / 1;
+    final oY = texOffY / 1;
     _sliverTransforms
       ..[i + 0] = scale
       ..[i + 1] = 0
       ..[i + 2] = x / 1
       ..[i + 3] = -lineHeight / 2 + camHeight;
     _sliverRects
-      ..[i + 0] = texOffX / 1 + texX
-      ..[i + 1] = texOffY / 1
-      ..[i + 2] = texOffX / 1 + texX + 1 / scale
-      ..[i + 3] = texOffY / 1 + texH;
+      ..[i + 0] = oX + texX
+      ..[i + 1] = oY
+      ..[i + 2] = oX + texX + 1 / scale
+      ..[i + 3] = oY + texH;
     _sliverColors[x] = side == 1 ? 0xffffffff : 0xffc8c8c8;
   }
 }
