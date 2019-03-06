@@ -15,10 +15,10 @@ Future<Image> loadImage(String key) async {
 
 Future<Buttons> loadButtons(
   String key,
-  String atlasKey,
   double pixelRatio,
   double scale,
   Rect bounds,
+  Image atlas,
 ) async {
   final data = jsonDecode(await rootBundle.loadString(key));
   final d = data['buttons'];
@@ -50,7 +50,7 @@ Future<Buttons> loadButtons(
               Radius.circular(a[2] * scale),
             ))
         .toList(),
-    await loadImage(atlasKey),
+    atlas,
   );
 }
 

@@ -1,33 +1,19 @@
 // https://gist.github.com/netsmertia/9c588f23391c781fa1eb791f0dce0768
 
-import 'dart:async';
 import 'dart:ui';
 import 'dart:typed_data';
 import 'package:flutter/services.dart';
 import 'package:vector_math/vector_math.dart';
-import 'package:native_device_orientation/native_device_orientation.dart';
 import 'utils.dart';
 import 'game.dart';
 import 'level.dart';
+import 'buttons.dart';
 
 main() async {
   await SystemChrome.setEnabledSystemUIOverlays([]);
-  // await SystemChrome.setPreferredOrientations(
-  //   [DeviceOrientation.landscapeLeft, DeviceOrientation.landscapeRight],
-  // );
-
-  final initialSize = await Future<Size>(() {
-    if (window.physicalSize.isEmpty) {
-      final completer = Completer<Size>();
-      window.onMetricsChanged = () {
-        if (!window.physicalSize.isEmpty) {
-          completer.complete(window.physicalSize);
-        }
-      };
-      return completer.future;
-    }
-    return window.physicalSize;
-  });
+  await SystemChrome.setPreferredOrientations(
+    [DeviceOrientation.landscapeLeft, DeviceOrientation.landscapeRight],
+  );
 
   // print(
   //     '>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> ${window.physicalSize}');
@@ -38,47 +24,19 @@ main() async {
   // print(
   //     '<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< ${initialSize / 360}');
 
-  // TODO: Always check to use the larger value between W & H as width
   // TODO: Add "start/pause" button
   // TODO: Implement swipe left/right to handle weapon switching
   final viewSize = Size(640, 360);
   final bounds = Offset.zero & viewSize;
 
-  final com = NativeDeviceOrientationCommunicator();
-  final landscape = [
-    NativeDeviceOrientation.landscapeLeft,
-    NativeDeviceOrientation.landscapeRight,
-  ];
+  final deviceTransform = Float64List(16);
+  Offset offset;
+  Buttons btns;
+  final btnAtlas = await loadImage('img/gui.png');
 
-  final orientation = await com.orientation();
-  final pixelRatio = landscape.contains(orientation)
-      ? initialSize.height / viewSize.height
-      : initialSize.width / viewSize.width;
-
-  final deviceTransform = Float64List(16)
-    ..[0] = pixelRatio
-    ..[5] = pixelRatio
-    ..[10] = 1
-    ..[15] = 1;
-  var offset = (initialSize / pixelRatio - viewSize as Offset) * 0.5;
-
-  var btns = await loadButtons(
-    'data/buttons.json',
-    'img/gui.png',
-    pixelRatio,
-    1 / pixelRatio * window.devicePixelRatio,
-    Offset.zero & initialSize / pixelRatio,
-  );
-
-  window.onMetricsChanged = () async {
-    print('orientation change!');
-    final o = await com.orientation();
-    var size = window.physicalSize;
-
-    // Landscape : Portrait
-    final pr = landscape.contains(o)
-        ? size.height / viewSize.height
-        : size.width / viewSize.width;
+  final handleMetricsChanged = () async {
+    final size = window.physicalSize;
+    final pr = size.shortestSide / viewSize.shortestSide;
 
     deviceTransform
       ..[0] = pr
@@ -90,12 +48,15 @@ main() async {
 
     btns = await loadButtons(
       'data/buttons.json',
-      'img/gui.png',
       pr,
       1 / pr * window.devicePixelRatio,
       Offset.zero & size / pr,
+      btnAtlas,
     );
   };
+
+  handleMetricsChanged();
+  window.onMetricsChanged = handleMetricsChanged;
 
   final testLevel = Level(
     [
