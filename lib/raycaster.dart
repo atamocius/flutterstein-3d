@@ -65,9 +65,11 @@ class Raycaster {
       ..normalize()
       ..scale(_planeHalfW);
 
-    _sliverTransforms = Float32List(_screen.width ~/ 1 * 4);
-    _sliverRects = Float32List(_screen.width ~/ 1 * 4);
-    _sliverColors = Int32List(_screen.width ~/ 1);
+    final w = _screen.width ~/ 1;
+    final s = _stride;
+    _sliverTransforms = Float32List(w * s);
+    _sliverRects = Float32List(w * s);
+    _sliverColors = Int32List(w);
   }
 
   void render(Canvas canvas) {

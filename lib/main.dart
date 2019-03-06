@@ -45,8 +45,8 @@ main() async {
   final deviceTransform = Float64List(16)
     ..[0] = pixelRatio
     ..[5] = pixelRatio
-    ..[10] = 1.0
-    ..[15] = 1.0;
+    ..[10] = 1
+    ..[15] = 1;
   final offset =
       (window.physicalSize / pixelRatio - screenSize as Offset) * 0.5;
 
