@@ -5,6 +5,7 @@ import 'dart:ui';
 import 'dart:typed_data';
 import 'package:flutter/services.dart';
 import 'package:vector_math/vector_math.dart';
+import 'package:native_device_orientation/native_device_orientation.dart';
 import 'utils.dart';
 import 'game.dart';
 import 'level.dart';
@@ -28,44 +29,73 @@ main() async {
     return window.physicalSize;
   });
 
-  // window.onMetricsChanged = () {};
-
-  print(
-      '>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> ${window.physicalSize}');
-  print(
-      '>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> $initialSize');
-  print(
-      '<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< ${window.physicalSize.height / 360}');
-  print(
-      '<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< ${initialSize / 360}');
+  // print(
+  //     '>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> ${window.physicalSize}');
+  // print(
+  //     '>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> $initialSize');
+  // print(
+  //     '<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< ${window.physicalSize.height / 360}');
+  // print(
+  //     '<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< ${initialSize / 360}');
 
   // TODO: Always check to use the larger value between W & H as width
   // TODO: Add "start/pause" button
   // TODO: Implement swipe left/right to handle weapon switching
-  final screenSize = Size(640, 360);
-  // Landscape
-  final pixelRatio = initialSize.height / screenSize.height;
-  // Portrait
-  // final pixelRatio = initialSize.width / screenSize.width;
+  final viewSize = Size(640, 360);
+  final bounds = Offset.zero & viewSize;
+
+  final com = NativeDeviceOrientationCommunicator();
+  final landscape = [
+    NativeDeviceOrientation.landscapeLeft,
+    NativeDeviceOrientation.landscapeRight,
+  ];
+
+  final orientation = await com.orientation();
+  final pixelRatio = landscape.contains(orientation)
+      ? initialSize.height / viewSize.height
+      : initialSize.width / viewSize.width;
+
   final deviceTransform = Float64List(16)
     ..[0] = pixelRatio
     ..[5] = pixelRatio
     ..[10] = 1
     ..[15] = 1;
-  final offset =
-      (window.physicalSize / pixelRatio - screenSize as Offset) * 0.5;
+  var offset = (initialSize / pixelRatio - viewSize as Offset) * 0.5;
 
-  var previous = Duration.zero;
-  final bounds = Offset.zero & screenSize;
-  final paint = Paint();
-
-  final btns = await loadButtons(
+  var btns = await loadButtons(
     'data/buttons.json',
     'img/gui.png',
     pixelRatio,
     1 / pixelRatio * window.devicePixelRatio,
     Offset.zero & initialSize / pixelRatio,
   );
+
+  window.onMetricsChanged = () async {
+    print('orientation change!');
+    final o = await com.orientation();
+    var size = window.physicalSize;
+
+    // Landscape : Portrait
+    final pr = landscape.contains(o)
+        ? size.height / viewSize.height
+        : size.width / viewSize.width;
+
+    deviceTransform
+      ..[0] = pr
+      ..[5] = pr
+      ..[10] = 1
+      ..[15] = 1;
+
+    offset = (size / pr - viewSize as Offset) * 0.5;
+
+    btns = await loadButtons(
+      'data/buttons.json',
+      'img/gui.png',
+      pr,
+      1 / pr * window.devicePixelRatio,
+      Offset.zero & size / pr,
+    );
+  };
 
   final testLevel = Level(
     [
@@ -101,10 +131,12 @@ main() async {
     Vector2(-1, 0),
   );
 
-  final game = Game(screenSize, testLevel);
+  final game = Game(viewSize, testLevel);
+  var previous = Duration.zero;
+  final paint = Paint();
+
   int buttonState = 0;
   final btnRects = List<Rect>(btns.count);
-
   final pressed = (b) => buttonState & btns.masks[b] > 0;
 
   window.onBeginFrame = (now) {
