@@ -93,7 +93,8 @@ main() async {
   );
 
   final game = Game(viewSize, testLevel);
-  var previous = Duration.zero;
+  final zero = Duration.zero;
+  var previous = zero;
   final paint = Paint();
 
   int buttonState = 0;
@@ -104,7 +105,7 @@ main() async {
     final recorder = PictureRecorder();
     final canvas = Canvas(recorder, bounds);
 
-    final delta = previous == Duration.zero ? Duration.zero : now - previous;
+    final delta = previous == zero ? zero : now - previous;
     previous = now;
     final t = delta.inMicroseconds / 1000000;
 
