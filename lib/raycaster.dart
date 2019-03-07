@@ -56,11 +56,31 @@ class Raycaster {
   final _sliverPaint = Paint();
   final _stride = 4;
 
+  final Rect _ceilRect;
+  final Rect _floorRect;
+  final Paint _ceilPaint;
+  final Paint _floorPaint;
+
   Raycaster(this._screen, this._lvl)
       : pos = _lvl.pos.clone(),
         dir = _lvl.dir.clone(),
         _atlas = _lvl.atlas,
-        _atlasSize = _lvl.atlasSize {
+        _atlasSize = _lvl.atlasSize,
+        _ceilRect = Rect.fromLTWH(0, 0, _screen.width, _screen.height / 2),
+        _floorRect =
+            Rect.fromLTWH(0, _screen.height / 2, _screen.width, _screen.height),
+        _ceilPaint = Paint()
+          ..shader = Gradient.linear(
+            Offset(0, 0),
+            Offset(0, _screen.height / 2),
+            [Color(0xff83769c), Color(0xff5f574f)],
+          ),
+        _floorPaint = Paint()
+          ..shader = Gradient.linear(
+            Offset(0, _screen.height / 2),
+            Offset(0, _screen.height),
+            [Color(0xffab5236), Color(0xffffccaa)],
+          ) {
     plane = Vector2(dir.y, -dir.x)
       ..normalize()
       ..scale(_planeHalfW);
@@ -75,6 +95,9 @@ class Raycaster {
     for (int x = 0; x < _screen.width; x++) {
       _raycast(x, _screen.width, _screen.height);
     }
+
+    canvas.drawRect(_ceilRect, _ceilPaint);
+    canvas.drawRect(_floorRect, _floorPaint);
 
     canvas.drawRawAtlas(
       _atlas,
@@ -166,18 +189,20 @@ class Raycaster {
     // 1 subtracted from it so that texture 0 can be used!
     final texNum = _lvl.get(mapX, mapY) - 1,
         texOffX = texNum % _atlasSize * texW,
-        texOffY = texNum ~/ _atlasSize * texW;
+        texOffY = texNum ~/ _atlasSize * texH;
 
     final i = x * _stride,
         scale = lineHeight / texH,
         oX = texOffX / 1,
         oY = texOffY / 1,
-        camHeight = h * 0.5; //h / 2; // TODO: Implement cam bobble
+        camHeight = h * 0.5, //h / 2; // TODO: Implement cam bobble
+        drawStart = -lineHeight / 2 + camHeight;
+
     _sliverTransforms
       ..[i + 0] = scale
       ..[i + 1] = 0
       ..[i + 2] = x / 1
-      ..[i + 3] = -lineHeight / 2 + camHeight;
+      ..[i + 3] = drawStart;
     _sliverRects
       ..[i + 0] = oX + texX
       ..[i + 1] = oY
