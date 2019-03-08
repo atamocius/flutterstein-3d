@@ -1,5 +1,6 @@
 import 'dart:ui';
 import 'package:vector_math/vector_math.dart';
+import 'utils.dart';
 import 'raycaster.dart';
 import 'level.dart';
 import 'buttons.dart';
@@ -62,8 +63,8 @@ class Game {
     if (l.get(p.x, p.y + d.y) == 0) p.y += d.y;
 
     // Get the fractional part of the position coordinates
-    final fX = p.x - p.x ~/ 1;
-    final fY = p.y - p.y ~/ 1;
+    final fX = frac(p.x);
+    final fY = frac(p.y);
 
     // Add some padding between the camera and the walls
     if (d.x < 0) {

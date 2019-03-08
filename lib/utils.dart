@@ -5,6 +5,9 @@ import 'dart:ui';
 import 'package:flutter/services.dart';
 import 'buttons.dart';
 
+double frac(double v) => v - v.floor();
+double invAbs(double v) => (1 / v).abs();
+
 Future<Image> loadImage(String key) async {
   final data = await rootBundle.load(key);
   final buffer = Uint8List.view(data.buffer);

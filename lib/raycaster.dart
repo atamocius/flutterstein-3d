@@ -16,6 +16,7 @@
 import 'dart:ui';
 import 'dart:typed_data';
 import 'package:vector_math/vector_math.dart';
+import 'utils.dart';
 import 'level.dart';
 
 // Texture size
@@ -92,9 +93,7 @@ class Raycaster {
   }
 
   void render(Canvas canvas) {
-    for (int x = 0; x < _screen.width; x++) {
-      _raycast(x, _screen.width, _screen.height);
-    }
+    for (int x = 0; x < _screen.width; x++) _raycast(x);
 
     canvas.drawRect(_ceilRect, _ceilPaint);
     canvas.drawRect(_floorRect, _floorPaint);
@@ -110,7 +109,10 @@ class Raycaster {
     );
   }
 
-  void _raycast(int x, double w, double h) {
+  void _raycast(int x) {
+    final w = _screen.width;
+    final h = _screen.height;
+
     // calculate ray position and direction
     final cameraX = 2 * x / w - 1; // x-coordinate in camera space
 
@@ -124,8 +126,8 @@ class Raycaster {
     int mapX = pos.x.floor(), mapY = pos.y.floor();
 
     // length of ray from one x or y-side to next x or y-side
-    _deltaDist.x = (1 / _rayDir.x).abs();
-    _deltaDist.y = (1 / _rayDir.y).abs();
+    _deltaDist.x = invAbs(_rayDir.x);
+    _deltaDist.y = invAbs(_rayDir.y);
 
     // what direction to step in x or y-direction (either +1 or -1)
     int stepX = 0, stepY = 0;
@@ -178,7 +180,7 @@ class Raycaster {
     var wallX = side == 0
         ? pos.y + perpWallDist * _rayDir.y
         : pos.x + perpWallDist * _rayDir.x;
-    wallX -= wallX.floor();
+    wallX = frac(wallX);
 
     // x coordinate on the texture
     int texX = (wallX * texW).floor();
@@ -188,13 +190,12 @@ class Raycaster {
     // texturing calculations
     // 1 subtracted from it so that texture 0 can be used!
     final texNum = _lvl.get(mapX, mapY) - 1,
-        texOffX = texNum % _atlasSize * texW,
-        texOffY = texNum ~/ _atlasSize * texH;
+        // texture offset
+        oX = texNum % _atlasSize * texW / 1,
+        oY = texNum ~/ _atlasSize * texH / 1;
 
     final i = x * _stride,
         scale = lineHeight / texH,
-        oX = texOffX / 1,
-        oY = texOffY / 1,
         camHeight = h * 0.5, //h / 2; // TODO: Implement cam bobble
         drawStart = -lineHeight / 2 + camHeight;
 
