@@ -50,10 +50,16 @@ class Raycaster {
   final Image _atlas;
   final int _atlasSize;
 
-  // Draw buffers
-  Float32List _sliverTransforms;
-  Float32List _sliverRects;
-  Int32List _sliverColors;
+  // Wall draw buffers
+  Float32List _wallSliverTransforms;
+  Float32List _wallSliverRects;
+  Int32List _wallSliverColors;
+
+  // Sprite draw buffers
+  Float32List _spriteSliverTransforms;
+  Float32List _spriteSliverRects;
+  Int32List _spriteSliverColors;
+
   final _sliverPaint = Paint();
   final _stride = 4;
 
@@ -61,6 +67,13 @@ class Raycaster {
   final Rect _floorRect;
   final Paint _ceilPaint;
   final Paint _floorPaint;
+
+  // 1D ZBuffer
+  final List<double> _zbuffer;
+
+  // Arrays used to sort the sprites
+  final List<int> _spriteOrder;
+  final List<double> _spriteDistance;
 
   Raycaster(this._screen, this._lvl)
       : pos = _lvl.pos.clone(),
@@ -81,32 +94,52 @@ class Raycaster {
             Offset(0, _screen.height / 2),
             Offset(0, _screen.height),
             [Color(0xffab5236), Color(0xffffccaa)],
-          ) {
+          ),
+        _zbuffer = List.filled(_screen.width ~/ 1, 0),
+        _spriteOrder = List(_lvl.sprites.length),
+        _spriteDistance = List(_lvl.sprites.length) {
     plane = Vector2(dir.y, -dir.x)
       ..normalize()
       ..scale(_planeHalfW);
 
     final w = _screen.width ~/ 1, s = _stride;
-    _sliverTransforms = Float32List(w * s);
-    _sliverRects = Float32List(w * s);
-    _sliverColors = Int32List(w);
+    _wallSliverTransforms = Float32List(w * s);
+    _wallSliverRects = Float32List(w * s);
+    _wallSliverColors = Int32List(w);
+
+    _spriteSliverTransforms = Float32List(w * s);
+    _spriteSliverRects = Float32List(w * s);
+    _spriteSliverColors = Int32List(w);
   }
 
   void render(Canvas canvas) {
     for (int x = 0; x < _screen.width; x++) _raycast(x);
 
+    // TODO: Combine into a single draw call
     canvas.drawRect(_ceilRect, _ceilPaint);
     canvas.drawRect(_floorRect, _floorPaint);
 
     canvas.drawRawAtlas(
       _atlas,
-      _sliverTransforms,
-      _sliverRects,
-      _sliverColors,
+      _wallSliverTransforms,
+      _wallSliverRects,
+      _wallSliverColors,
       BlendMode.modulate,
       null,
       _sliverPaint,
     );
+
+    _spritecast(canvas);
+
+    // canvas.drawRawAtlas(
+    //   _atlas,
+    //   _spriteSliverTransforms,
+    //   _spriteSliverRects,
+    //   _spriteSliverColors,
+    //   BlendMode.modulate,
+    //   null,
+    //   _sliverPaint,
+    // );
   }
 
   void _raycast(int x) {
@@ -199,16 +232,150 @@ class Raycaster {
         camHeight = h * 0.5, //h / 2; // TODO: Implement cam bobble
         drawStart = -lineHeight / 2 + camHeight;
 
-    _sliverTransforms
+    _wallSliverTransforms
       ..[i + 0] = scale
       ..[i + 1] = 0
       ..[i + 2] = x / 1
       ..[i + 3] = drawStart;
-    _sliverRects
+    _wallSliverRects
       ..[i + 0] = oX + texX
       ..[i + 1] = oY
       ..[i + 2] = oX + texX + 1 / scale
       ..[i + 3] = oY + texH;
-    _sliverColors[x] = side == 1 ? 0xffffffff : 0xffc8c8c8;
+    _wallSliverColors[x] = side == 1 ? 0xffffffff : 0xffc8c8c8;
+
+    // Set zbuffer for sprite casting
+    _zbuffer[x] = perpWallDist;
+
+    // TODO: ____
+    // Clear sprite sliver for the current X
+    // This is to remove the "echo" artifacts
+    _spriteSliverColors[x] = 0x00000000;
+  }
+
+  void _spritecast(Canvas canvas) {
+    final w = _screen.width;
+    final h = _screen.height;
+
+    // Sprite casting
+    final numSprites = _lvl.sprites.length;
+    final sprites = _lvl.sprites;
+    for (int i = 0; i < numSprites; i++) {
+      _spriteOrder[i] = i;
+      final sx = sprites[i].pos.x;
+      final sy = sprites[i].pos.y;
+      // sqrt not taken, unneeded
+      _spriteDistance[i] =
+          (pos.x - sx) * (pos.x - sx) + (pos.y - sy) * (pos.y - sy);
+    }
+
+    combSort(_spriteOrder, _spriteDistance, numSprites);
+
+    // After sorting the sprites, do the projection and draw them
+    for (int i = 0; i < numSprites; i++) {
+      // Translate sprite position to relative to camera
+      final spriteX = sprites[_spriteOrder[i]].pos.x - pos.x;
+      final spriteY = sprites[_spriteOrder[i]].pos.y - pos.y;
+
+      // Transform sprite with the inverse camera matrix
+      // [ planeX   dirX ] -1                                       [ dirY      -dirX ]
+      // [               ]       =  1/(planeX*dirY-dirX*planeY) *   [                 ]
+      // [ planeY   dirY ]                                          [ -planeY  planeX ]
+
+      // Required for correct matrix multiplication
+      final invDet = 1 / (plane.x * dir.y - dir.x * plane.y);
+
+      final transformX = invDet * (dir.y * spriteX - dir.x * spriteY);
+      // this is actually the depth inside the screen, that what Z is in 3D
+      final transformY = invDet * (-plane.y * spriteX + plane.x * spriteY);
+
+      int spriteScreenX = ((w / 2) * (1 + transformX / transformY)).floor();
+
+      // Calculate height of the sprite on screen
+      // Using "transformY" instead of the real distance prevents fisheye
+      int spriteHeight = (h / transformY).floor().abs();
+      // Calculate lowest and highest pixel to fill in current stripe
+      int drawStartY = (-spriteHeight / 2).floor() + (h / 2).floor();
+      // if (drawStartY < 0) drawStartY = 0;
+      int drawEndY = (spriteHeight / 2).floor() + (h / 2).floor();
+      // if (drawEndY >= h) drawEndY = (h - 1).floor();
+
+      // Calculate width of the sprite
+      int spriteWidth = (h / transformY).floor().abs();
+      int drawStartX = -spriteWidth ~/ 2 + spriteScreenX;
+      if (drawStartX < 0) drawStartX = 0;
+      int drawEndX = spriteWidth ~/ 2 + spriteScreenX;
+      if (drawEndX >= w) drawEndX = (w - 1).floor();
+
+      // Loop through every vertical stripe of the sprite on screen
+      for (int stripe = drawStartX; stripe < drawEndX; stripe++) {
+        int texX = ((256 *
+                    (stripe - (-spriteWidth / 2 + spriteScreenX)) *
+                    texW /
+                    spriteWidth) /
+                256)
+            .floor();
+
+        // The conditions in the if are:
+        // 1) it's in front of camera plane so you don't see things behind you
+        // 2) it's on the screen (left)
+        // 3) it's on the screen (right)
+        // 4) ZBuffer, with perpendicular distance
+        if (transformY > 0 &&
+            stripe > 0 &&
+            stripe < w &&
+            transformY < _zbuffer[stripe]) {
+          // texturing calculations
+          // 1 subtracted from it so that texture 0 can be used!
+          final spriteTexNum = sprites[_spriteOrder[i]].tex,
+              // texture offset
+              soX = spriteTexNum % _atlasSize * texW / 1,
+              soY = spriteTexNum ~/ _atlasSize * texH / 1;
+
+          // final ii = stripe * _stride,
+          //     scale = lineHeight / texH,
+          //     camHeight = h * 0.5, //h / 2; // TODO: Implement cam bobble
+          //     drawStart = -lineHeight / 2 + camHeight;
+          final ii = stripe * _stride;
+          final spriteScale = spriteHeight / texH;
+
+          // TODO: Sprites overwrite each other - drawing slivers needs to be
+          //       additive!
+          // TODO: # of transforms and rects = # of sprites (or just immediately draw!)
+          //       - Use drawStartX and drawEndX
+          //       - No need for the strip for-loop!
+          //       - Optimization: if width == 0, do not call draw function!
+
+          // _spriteSliverTransforms
+          //   ..[ii + 0] = spriteScale
+          //   ..[ii + 1] = 0
+          //   ..[ii + 2] = stripe / 1
+          //   ..[ii + 3] = drawStartY / 1;
+          // _spriteSliverRects
+          //   ..[ii + 0] = soX + texX
+          //   ..[ii + 1] = soY
+          //   ..[ii + 2] = soX + texX + 1 / spriteScale
+          //   ..[ii + 3] = soY + texH;
+          // _spriteSliverColors[stripe] = 0xffffffff;
+
+          canvas.drawImageRect(
+            _atlas,
+            Rect.fromLTWH(
+              soX + texX,
+              soY,
+              1,
+              texH / 1,
+            ),
+            Rect.fromLTRB(
+              stripe / 1,
+              drawStartY / 1,
+              stripe / 1 + 1,
+              drawEndY / 1,
+            ),
+            _sliverPaint,
+          );
+        }
+      }
+    }
   }
 }

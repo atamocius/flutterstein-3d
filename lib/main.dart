@@ -25,7 +25,7 @@ main() async {
 
   // TODO: Add "start/pause" button
   // TODO: Implement swipe left/right to handle weapon switching
-  final viewSize = Size(640, 360);
+  final viewSize = Size(256, 144);
   final bounds = Offset.zero & viewSize;
 
   final deviceTransform = Float64List(16);
@@ -89,6 +89,32 @@ main() async {
     4,
     Vector2(22, 10), // origin the bottom-left of the map array
     Vector2(-1, 0),
+    [
+      Sprite(Vector2(20.5, 11.5), 10), //green light in front of playerstart
+      //green lights in every room
+      Sprite(Vector2(18.5, 4.5), 10),
+      Sprite(Vector2(10.0, 4.5), 10),
+      Sprite(Vector2(10.0, 12.5), 10),
+      Sprite(Vector2(3.5, 6.5), 10),
+      Sprite(Vector2(3.5, 20.5), 10),
+      Sprite(Vector2(3.5, 14.5), 10),
+      Sprite(Vector2(14.5, 20.5), 10),
+
+      //row of pillars in front of wall: fisheye test
+      Sprite(Vector2(18.5, 10.5), 9),
+      Sprite(Vector2(18.5, 11.5), 9),
+      Sprite(Vector2(18.5, 12.5), 9),
+
+      //some barrels around the map
+      Sprite(Vector2(21.5, 1.5), 8),
+      Sprite(Vector2(15.5, 1.5), 8),
+      Sprite(Vector2(16.0, 1.8), 8),
+      Sprite(Vector2(16.2, 1.2), 8),
+      Sprite(Vector2(3.5, 2.5), 8),
+      Sprite(Vector2(9.5, 15.5), 8),
+      Sprite(Vector2(10.0, 15.1), 8),
+      Sprite(Vector2(10.5, 15.8), 8),
+    ],
   );
 
   final game = Game(viewSize, testLevel);
@@ -102,6 +128,8 @@ main() async {
     final delta = prev == zero ? zero : now - prev;
     prev = now;
     final t = delta.inMicroseconds / 1000000;
+
+    print(1.0 / t); // FPS counter
 
     // canvas.drawColor(Color(0xFF1D2B53), BlendMode.src);
     // canvas.drawPaint(Paint()..color = Color(0xFF1D2B53));

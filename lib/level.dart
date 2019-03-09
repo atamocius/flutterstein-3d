@@ -12,6 +12,7 @@ class Level {
   // Camera position
   final Vector2 pos, // Camera position
       dir; // Direction vector
+  final List<Sprite> sprites;
 
   Level(
     this._map,
@@ -20,8 +21,17 @@ class Level {
     this.atlasSize,
     this.pos,
     this.dir,
+    this.sprites,
   );
 
   // Convert coordinates to map index (but Y is flipped)
-  int get(num x, num y) => _map[(mapSize - (y ~/ 1) - 1) * mapSize + (x ~/ 1)];
+  int get(num x, num y) =>
+      _map[(mapSize - y.floor() - 1) * mapSize + x.floor()];
+}
+
+class Sprite {
+  final Vector2 pos;
+  final int tex;
+
+  Sprite(this.pos, this.tex);
 }

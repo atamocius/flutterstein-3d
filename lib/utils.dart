@@ -8,6 +8,34 @@ import 'buttons.dart';
 double frac(double v) => v - v.floor();
 double invAbs(double v) => (1 / v).abs();
 
+void combSort(List<int> order, List<double> dist, int amount) {
+  var gap = amount;
+  var swapped = false;
+
+  while (gap > 1 || swapped) {
+    //shrink factor 1.3
+    gap = (gap * 10) ~/ 13;
+    if (gap == 9 || gap == 10) gap = 11;
+    if (gap < 1) gap = 1;
+    swapped = false;
+
+    for (int i = 0; i < amount - gap; i++) {
+      int j = i + gap;
+      if (dist[i] < dist[j]) {
+        num tmp = dist[i];
+        dist[i] = dist[j];
+        dist[j] = tmp;
+
+        tmp = order[i];
+        order[i] = order[j];
+        order[j] = tmp;
+
+        swapped = true;
+      }
+    }
+  }
+}
+
 Future<Image> loadImage(String key) async {
   final data = await rootBundle.load(key);
   final buffer = Uint8List.view(data.buffer);
