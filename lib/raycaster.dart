@@ -55,11 +55,6 @@ class Raycaster {
   Float32List _wallSliverRects;
   Int32List _wallSliverColors;
 
-  // Sprite draw buffers
-  Float32List _spriteSliverTransforms;
-  Float32List _spriteSliverRects;
-  Int32List _spriteSliverColors;
-
   final _sliverPaint = Paint();
   final _stride = 4;
 
@@ -106,10 +101,6 @@ class Raycaster {
     _wallSliverTransforms = Float32List(w * s);
     _wallSliverRects = Float32List(w * s);
     _wallSliverColors = Int32List(w);
-
-    _spriteSliverTransforms = Float32List(w * s);
-    _spriteSliverRects = Float32List(w * s);
-    _spriteSliverColors = Int32List(w);
   }
 
   void render(Canvas canvas) {
@@ -130,16 +121,6 @@ class Raycaster {
     );
 
     _spritecast(canvas);
-
-    // canvas.drawRawAtlas(
-    //   _atlas,
-    //   _spriteSliverTransforms,
-    //   _spriteSliverRects,
-    //   _spriteSliverColors,
-    //   BlendMode.modulate,
-    //   null,
-    //   _sliverPaint,
-    // );
   }
 
   void _raycast(int x) {
@@ -246,11 +227,6 @@ class Raycaster {
 
     // Set zbuffer for sprite casting
     _zbuffer[x] = perpWallDist;
-
-    // TODO: ____
-    // Clear sprite sliver for the current X
-    // This is to remove the "echo" artifacts
-    _spriteSliverColors[x] = 0x00000000;
   }
 
   void _spritecast(Canvas canvas) {
@@ -331,32 +307,6 @@ class Raycaster {
               // texture offset
               soX = spriteTexNum % _atlasSize * texW / 1,
               soY = spriteTexNum ~/ _atlasSize * texH / 1;
-
-          // final ii = stripe * _stride,
-          //     scale = lineHeight / texH,
-          //     camHeight = h * 0.5, //h / 2; // TODO: Implement cam bobble
-          //     drawStart = -lineHeight / 2 + camHeight;
-          final ii = stripe * _stride;
-          final spriteScale = spriteHeight / texH;
-
-          // TODO: Sprites overwrite each other - drawing slivers needs to be
-          //       additive!
-          // TODO: # of transforms and rects = # of sprites (or just immediately draw!)
-          //       - Use drawStartX and drawEndX
-          //       - No need for the strip for-loop!
-          //       - Optimization: if width == 0, do not call draw function!
-
-          // _spriteSliverTransforms
-          //   ..[ii + 0] = spriteScale
-          //   ..[ii + 1] = 0
-          //   ..[ii + 2] = stripe / 1
-          //   ..[ii + 3] = drawStartY / 1;
-          // _spriteSliverRects
-          //   ..[ii + 0] = soX + texX
-          //   ..[ii + 1] = soY
-          //   ..[ii + 2] = soX + texX + 1 / spriteScale
-          //   ..[ii + 3] = soY + texH;
-          // _spriteSliverColors[stripe] = 0xffffffff;
 
           canvas.drawImageRect(
             _atlas,

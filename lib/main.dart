@@ -25,7 +25,9 @@ main() async {
 
   // TODO: Add "start/pause" button
   // TODO: Implement swipe left/right to handle weapon switching
-  final viewSize = Size(256, 144);
+
+  // https://pacoup.com/2011/06/12/list-of-true-169-resolutions/
+  final viewSize = Size(640, 360);
   final bounds = Offset.zero & viewSize;
 
   final deviceTransform = Float64List(16);
