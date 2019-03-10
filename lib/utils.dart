@@ -7,6 +7,15 @@ import 'buttons.dart';
 
 double frac(double v) => v - v.floor();
 double invAbs(double v) => (1 / v).abs();
+num sq(num v) => v * v;
+
+int greyscale(num s, [int b = 255]) =>
+    // (((255 & 0xff) << 24) |
+    (0xff000000 |
+        (((b * s).floor() & 0xff) << 16) |
+        (((b * s).floor() & 0xff) << 8) |
+        (((b * s).floor() & 0xff) << 0)) &
+    0xFFFFFFFF;
 
 void combSort(List<int> order, List<double> dist, int amount) {
   var gap = amount;

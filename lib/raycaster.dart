@@ -72,6 +72,9 @@ class Raycaster {
   final List<int> _spriteOrder;
   final List<double> _spriteDistance;
 
+  final _fogSegs = 16;
+  List<Paint> _spriteFogLookup;
+
   Raycaster(this._screen, this._lvl)
       : pos = _lvl.pos.clone(),
         dir = _lvl.dir.clone(),
@@ -117,6 +120,14 @@ class Raycaster {
     _wallSliverTransforms = Float32List(w * s);
     _wallSliverRects = Float32List(w * s);
     _wallSliverColors = Int32List(w);
+
+    _spriteFogLookup = List.generate(
+        _fogSegs,
+        (i) => Paint()
+          ..colorFilter = ColorFilter.mode(
+            Color(greyscale(i / (_fogSegs - 1))),
+            BlendMode.modulate,
+          ));
   }
 
   void render(Canvas canvas) {
@@ -197,10 +208,13 @@ class Raycaster {
       if (_lvl.get(mapX, mapY) > 0) hit = 1;
     }
 
+    final dx = mapX - pos.x;
+    final dy = mapY - pos.y;
+
     // Calculate distance projected on camera direction (Euclidean distance will give fisheye effect!)
     final perpWallDist = side == 0
-        ? (mapX - pos.x + (1 - stepX) / 2) / _rayDir.x
-        : (mapY - pos.y + (1 - stepY) / 2) / _rayDir.y;
+        ? (dx + (1 - stepX) / 2) / _rayDir.x
+        : (dy + (1 - stepY) / 2) / _rayDir.y;
 
     // Calculate height of line to draw on screen
     final lineHeight = h / perpWallDist;
@@ -238,24 +252,10 @@ class Raycaster {
       ..[i + 1] = oY
       ..[i + 2] = oX + texX + 1 / scale
       ..[i + 3] = oY + texH;
-    // _wallSliverColors[x] = side == 1 ? 0xffffffff : 0xffc8c8c8;
-    // _wallSliverColors[x] = Color.fromARGB(
-    //   255,
-    //   (255 * scale).floor(),
-    //   (255 * scale).floor(),
-    //   (255 * scale).floor(),
-    // ).value;
 
-    var a = mapX - pos.x;
-    var b = mapY - pos.y;
-    final euclidDist = sqrt(a * a + b * b);
-    var ddd = 1.0 - min((euclidDist / 10) * (euclidDist / 10), 1);
-    var ccc = side == 1 ? 255 : 200;
-    _wallSliverColors[x] = (((255 & 0xff) << 24) |
-            (((ccc * ddd).floor() & 0xff) << 16) |
-            (((ccc * ddd).floor() & 0xff) << 8) |
-            (((ccc * ddd).floor() & 0xff) << 0)) &
-        0xFFFFFFFF;
+    final euclidDistSq = sq(dx) + sq(dy);
+    final att = 1 - min(sq(euclidDistSq / 100), 1);
+    _wallSliverColors[x] = greyscale(att, side == 1 ? 255 : 200);
 
     // Set zbuffer for sprite casting
     _zbuffer[x] = perpWallDist;
@@ -270,11 +270,8 @@ class Raycaster {
     final sprites = _lvl.sprites;
     for (int i = 0; i < numSprites; i++) {
       _spriteOrder[i] = i;
-      final sx = sprites[i].pos.x;
-      final sy = sprites[i].pos.y;
       // sqrt not taken, unneeded
-      _spriteDistance[i] =
-          (pos.x - sx) * (pos.x - sx) + (pos.y - sy) * (pos.y - sy);
+      _spriteDistance[i] = pos.distanceToSquared(sprites[i].pos);
     }
 
     combSort(_spriteOrder, _spriteDistance, numSprites);
@@ -297,16 +294,14 @@ class Raycaster {
       // this is actually the depth inside the screen, that what Z is in 3D
       final transformY = invDet * (-plane.y * spriteX + plane.x * spriteY);
 
-      int spriteScreenX = ((w / 2) * (1 + transformX / transformY)).floor();
+      int spriteScreenX = ((w / 2) * (1 + transformX / transformY)).toInt();
 
       // Calculate height of the sprite on screen
       // Using "transformY" instead of the real distance prevents fisheye
       int spriteHeight = (h / transformY).floor().abs();
       // Calculate lowest and highest pixel to fill in current stripe
       int drawStartY = (-spriteHeight / 2).floor() + (h / 2).floor();
-      // if (drawStartY < 0) drawStartY = 0;
       int drawEndY = (spriteHeight / 2).floor() + (h / 2).floor();
-      // if (drawEndY >= h) drawEndY = (h - 1).floor();
 
       // Calculate width of the sprite
       int spriteWidth = (h / transformY).floor().abs();
@@ -317,12 +312,9 @@ class Raycaster {
 
       // Loop through every vertical stripe of the sprite on screen
       for (int stripe = drawStartX; stripe < drawEndX; stripe++) {
-        int texX = ((256 *
-                    (stripe - (-spriteWidth / 2 + spriteScreenX)) *
-                    texW /
-                    spriteWidth) /
-                256)
-            .floor();
+        int texX =
+            ((stripe - (-spriteWidth / 2 + spriteScreenX)) * texW / spriteWidth)
+                .floor();
 
         // The conditions in the if are:
         // 1) it's in front of camera plane so you don't see things behind you
@@ -334,22 +326,13 @@ class Raycaster {
             stripe < w &&
             transformY < _zbuffer[stripe]) {
           // texturing calculations
-          // 1 subtracted from it so that texture 0 can be used!
           final spriteTexNum = sprites[_spriteOrder[i]].tex,
               // texture offset
               soX = spriteTexNum % _atlasSize * texW / 1,
               soY = spriteTexNum ~/ _atlasSize * texH / 1;
 
-          final euclidDist = sqrt(spriteX * spriteX + spriteY * spriteY);
-          var ddd = 1.0 - min((euclidDist / 10) * (euclidDist / 10), 1);
-          var col = (((255 & 0xff) << 24) |
-                  (((255 * ddd).floor() & 0xff) << 16) |
-                  (((255 * ddd).floor() & 0xff) << 8) |
-                  (((255 * ddd).floor() & 0xff) << 0)) &
-              0xFFFFFFFF;
-
-          // TODO: Pre-calculate the Paint objects in a lookup table/list
-          //       index = (ddd * lookup.length).floor()
+          final euclidDistSq = sq(spriteX) + sq(spriteY);
+          final att = 1 - min(sq(euclidDistSq / 100), 1);
 
           canvas.drawImageRect(
             _atlas,
@@ -365,10 +348,7 @@ class Raycaster {
               stripe / 1 + 1,
               drawEndY / 1,
             ),
-            // _sliverPaint,
-            // TODO: Use pre-calculated instances
-            Paint()
-              ..colorFilter = ColorFilter.mode(Color(col), BlendMode.modulate),
+            _spriteFogLookup[(att * _fogSegs).floor()],
           );
         }
       }
