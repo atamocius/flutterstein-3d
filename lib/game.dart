@@ -1,4 +1,5 @@
 import 'dart:ui';
+import 'dart:math';
 import 'package:vector_math/vector_math.dart';
 import 'utils.dart';
 import 'raycaster.dart';
@@ -13,6 +14,10 @@ class Game {
       _moveSpeed = 3.0,
       _rotSpeed = 1.7,
       _wallPadding = 0.2;
+
+  double _bobTime = 0.0;
+  double _bobFreq = 10; // Frequency
+  double _bobAmp = 1.2; // Amplitude
 
   Game(Size screen, this._lvl) : _rc = Raycaster(screen, _lvl);
 
@@ -34,12 +39,16 @@ class Game {
     if (fwd || bwd) {
       _moveVec.x = dir.x * move * (fwd ? 1 : -1);
       _moveVec.y = dir.y * move * (fwd ? 1 : -1);
-      _translate(_lvl, pos, _moveVec, _wallPadding);
     }
 
     if (stfL || stfR) {
       _moveVec.x = dir.y * move * (stfL ? 1 : -1);
       _moveVec.y = -dir.x * move * (stfL ? 1 : -1);
+    }
+
+    if (fwd || bwd || stfL || stfR) {
+      _bobTime += t * _bobFreq;
+      // if (_bob <= -1 || _bob >= 1) _bobFreq *= -1;
       _translate(_lvl, pos, _moveVec, _wallPadding);
     }
 
@@ -52,6 +61,7 @@ class Game {
 
   void render(Canvas canvas) {
     canvas.save();
+    canvas.translate(0, sin((pi / 2) * _bobTime) * _bobAmp);
     _rc.render(canvas);
     canvas.restore();
   }

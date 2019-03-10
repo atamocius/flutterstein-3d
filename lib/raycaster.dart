@@ -80,20 +80,20 @@ class Raycaster {
         dir = _lvl.dir.clone(),
         _atlas = _lvl.atlas,
         _atlasSize = _lvl.atlasSize,
-        _ceilRect = Rect.fromLTWH(0, 0, _screen.width, _screen.height / 2),
-        _floorRect =
-            Rect.fromLTWH(0, _screen.height / 2, _screen.width, _screen.height),
+        _ceilRect = Rect.fromLTRB(0, -20, _screen.width, _screen.height / 2),
+        _floorRect = Rect.fromLTRB(
+            0, _screen.height / 2, _screen.width, _screen.height + 20),
         _ceilPaint = Paint()
           ..shader = Gradient.radial(
             Offset.zero,
             _screen.height / 2,
             [Color(0xff83769c), Color(0xff5f574f), Color(0xff000000)],
-            [0, 0.7, 0.9],
+            [0, 0.8, 0.9],
             TileMode.clamp,
             _64.Matrix4.compose(
               _64.Vector3(_screen.width / 2, 0, 0),
               _64.Quaternion.identity(),
-              _64.Vector3(8, 1, 1),
+              _64.Vector3(6, 1, 1),
             ).storage,
           ),
         _floorPaint = Paint()
@@ -101,12 +101,12 @@ class Raycaster {
             Offset.zero,
             _screen.height / 2,
             [Color(0xffffccaa), Color(0xffab5236), Color(0xff000000)],
-            [0, 0.7, 0.9],
+            [0, 0.8, 0.9],
             TileMode.clamp,
             _64.Matrix4.compose(
               _64.Vector3(_screen.width / 2, _screen.height, 0),
               _64.Quaternion.identity(),
-              _64.Vector3(8, 1, 1),
+              _64.Vector3(6, 1, 1),
             ).storage,
           ),
         _zbuffer = List.filled(_screen.width ~/ 1, 0),
@@ -239,7 +239,7 @@ class Raycaster {
 
     final i = x * _stride,
         scale = lineHeight / texH,
-        camHeight = h * 0.5, //h / 2; // TODO: Implement cam bobble
+        camHeight = h / 2,
         drawStart = -lineHeight / 2 + camHeight;
 
     _wallSliverTransforms
