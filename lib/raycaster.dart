@@ -14,8 +14,10 @@
 // https://github.com/mdn/canvas-raycaster
 
 import 'dart:ui';
+import 'dart:math';
 import 'dart:typed_data';
 import 'package:vector_math/vector_math.dart';
+import 'package:vector_math/vector_math_64.dart' as _64;
 import 'utils.dart';
 import 'level.dart';
 
@@ -79,16 +81,30 @@ class Raycaster {
         _floorRect =
             Rect.fromLTWH(0, _screen.height / 2, _screen.width, _screen.height),
         _ceilPaint = Paint()
-          ..shader = Gradient.linear(
-            Offset(0, 0),
-            Offset(0, _screen.height / 2),
-            [Color(0xff83769c), Color(0xff5f574f)],
+          ..shader = Gradient.radial(
+            Offset.zero,
+            _screen.height / 2,
+            [Color(0xff83769c), Color(0xff5f574f), Color(0xff000000)],
+            [0, 0.7, 0.9],
+            TileMode.clamp,
+            _64.Matrix4.compose(
+              _64.Vector3(_screen.width / 2, 0, 0),
+              _64.Quaternion.identity(),
+              _64.Vector3(8, 1, 1),
+            ).storage,
           ),
         _floorPaint = Paint()
-          ..shader = Gradient.linear(
-            Offset(0, _screen.height / 2),
-            Offset(0, _screen.height),
-            [Color(0xffab5236), Color(0xffffccaa)],
+          ..shader = Gradient.radial(
+            Offset.zero,
+            _screen.height / 2,
+            [Color(0xffffccaa), Color(0xffab5236), Color(0xff000000)],
+            [0, 0.7, 0.9],
+            TileMode.clamp,
+            _64.Matrix4.compose(
+              _64.Vector3(_screen.width / 2, _screen.height, 0),
+              _64.Quaternion.identity(),
+              _64.Vector3(8, 1, 1),
+            ).storage,
           ),
         _zbuffer = List.filled(_screen.width ~/ 1, 0),
         _spriteOrder = List(_lvl.sprites.length),
@@ -106,7 +122,6 @@ class Raycaster {
   void render(Canvas canvas) {
     for (int x = 0; x < _screen.width; x++) _raycast(x);
 
-    // TODO: Combine into a single draw call
     canvas.drawRect(_ceilRect, _ceilPaint);
     canvas.drawRect(_floorRect, _floorPaint);
 
@@ -223,7 +238,24 @@ class Raycaster {
       ..[i + 1] = oY
       ..[i + 2] = oX + texX + 1 / scale
       ..[i + 3] = oY + texH;
-    _wallSliverColors[x] = side == 1 ? 0xffffffff : 0xffc8c8c8;
+    // _wallSliverColors[x] = side == 1 ? 0xffffffff : 0xffc8c8c8;
+    // _wallSliverColors[x] = Color.fromARGB(
+    //   255,
+    //   (255 * scale).floor(),
+    //   (255 * scale).floor(),
+    //   (255 * scale).floor(),
+    // ).value;
+
+    var a = mapX - pos.x;
+    var b = mapY - pos.y;
+    final euclidDist = sqrt(a * a + b * b);
+    var ddd = 1.0 - min((euclidDist / 10) * (euclidDist / 10), 1);
+    var ccc = side == 1 ? 255 : 200;
+    _wallSliverColors[x] = (((255 & 0xff) << 24) |
+            (((ccc * ddd).floor() & 0xff) << 16) |
+            (((ccc * ddd).floor() & 0xff) << 8) |
+            (((ccc * ddd).floor() & 0xff) << 0)) &
+        0xFFFFFFFF;
 
     // Set zbuffer for sprite casting
     _zbuffer[x] = perpWallDist;
@@ -308,6 +340,17 @@ class Raycaster {
               soX = spriteTexNum % _atlasSize * texW / 1,
               soY = spriteTexNum ~/ _atlasSize * texH / 1;
 
+          final euclidDist = sqrt(spriteX * spriteX + spriteY * spriteY);
+          var ddd = 1.0 - min((euclidDist / 10) * (euclidDist / 10), 1);
+          var col = (((255 & 0xff) << 24) |
+                  (((255 * ddd).floor() & 0xff) << 16) |
+                  (((255 * ddd).floor() & 0xff) << 8) |
+                  (((255 * ddd).floor() & 0xff) << 0)) &
+              0xFFFFFFFF;
+
+          // TODO: Pre-calculate the Paint objects in a lookup table/list
+          //       index = (ddd * lookup.length).floor()
+
           canvas.drawImageRect(
             _atlas,
             Rect.fromLTWH(
@@ -322,7 +365,10 @@ class Raycaster {
               stripe / 1 + 1,
               drawEndY / 1,
             ),
-            _sliverPaint,
+            // _sliverPaint,
+            // TODO: Use pre-calculated instances
+            Paint()
+              ..colorFilter = ColorFilter.mode(Color(col), BlendMode.modulate),
           );
         }
       }
