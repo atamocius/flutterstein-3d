@@ -6,9 +6,9 @@ class Level {
   final List<int> _map;
   // The atlas texture
   final Image atlas;
-  final int
-      mapSize, // The map's width and height (only square maps are supported)
-      atlasSize; // The atlas' tile width and height (only square atlases are supported)
+  // mapSize - The map's width and height (only square maps are supported)
+  // atlasSize - The atlas' tile width and height (only square atlases are supported)
+  final int mapSize, atlasSize;
   // Camera position
   final Vector2 pos, // Camera position
       dir; // Direction vector
