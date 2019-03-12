@@ -17,7 +17,7 @@ class Game {
 
   double _bobTime = 0.0;
   double _bobFreq = 10; // Frequency
-  double _bobAmp = 1.2; // Amplitude
+  double _bobAmp = 2; // Amplitude
 
   Game(Size screen, this._lvl) : _rc = Raycaster(screen, _lvl);
 

@@ -3,10 +3,8 @@
 import 'dart:ui';
 import 'dart:typed_data';
 import 'package:flutter/services.dart';
-import 'package:vector_math/vector_math.dart';
 import 'utils.dart';
 import 'game.dart';
-import 'level.dart';
 import 'buttons.dart';
 
 main() async {
@@ -72,7 +70,7 @@ main() async {
     prev = now;
     final t = delta.inMicroseconds / 1000000;
 
-    print(1.0 / t); // FPS counter
+    // print(1.0 / t); // FPS counter
 
     // canvas.drawColor(Color(0xFF1D2B53), BlendMode.src);
     // canvas.drawPaint(Paint()..color = Color(0xFF1D2B53));
