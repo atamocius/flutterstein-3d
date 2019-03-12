@@ -53,25 +53,15 @@ class Raycaster {
   final int _atlasSize;
 
   // Wall draw buffers
-  Float32List _wallSliverTransforms;
-  Float32List _wallSliverRects;
-  Int32List _wallSliverColors;
+  Float32List _sliverTransforms;
+  Float32List _sliverRects;
+  Int32List _sliverColors;
 
   final _sliverPaint = Paint();
   final _stride = 4;
 
   final Rect _bgRect;
   final Paint _bgPaint;
-
-  // 1D ZBuffer
-  final List<double> _zbuffer;
-
-  // Arrays used to sort the sprites
-  final List<int> _spriteOrder;
-  final List<double> _spriteDistance;
-
-  final _fogSegs = 16;
-  List<Paint> _spriteFogLookup;
 
   Raycaster(this._screen, this._lvl)
       : pos = _lvl.pos.clone(),
@@ -92,26 +82,15 @@ class Raycaster {
               0xffffccaa,
             ].map((c) => Color(c)).toList(),
             [0, 0.35, 0.45, 0.55, 0.65, 1],
-          ),
-        _zbuffer = List.filled(_screen.width ~/ 1, 0),
-        _spriteOrder = List(_lvl.sprites.length),
-        _spriteDistance = List(_lvl.sprites.length) {
+          ) {
     plane = Vector2(dir.y, -dir.x)
       ..normalize()
       ..scale(_planeHalfW);
 
     final w = _screen.width ~/ 1, s = _stride;
-    _wallSliverTransforms = Float32List(w * s);
-    _wallSliverRects = Float32List(w * s);
-    _wallSliverColors = Int32List(w);
-
-    _spriteFogLookup = List.generate(
-        _fogSegs,
-        (i) => Paint()
-          ..colorFilter = ColorFilter.mode(
-            Color(greyscale(i / (_fogSegs - 1))),
-            BlendMode.modulate,
-          ));
+    _sliverTransforms = Float32List(w * s);
+    _sliverRects = Float32List(w * s);
+    _sliverColors = Int32List(w);
   }
 
   void render(Canvas canvas) {
@@ -121,15 +100,13 @@ class Raycaster {
 
     canvas.drawRawAtlas(
       _atlas,
-      _wallSliverTransforms,
-      _wallSliverRects,
-      _wallSliverColors,
+      _sliverTransforms,
+      _sliverRects,
+      _sliverColors,
       BlendMode.modulate,
       null,
       _sliverPaint,
     );
-
-    _spritecast(canvas);
   }
 
   void _raycast(int x) {
@@ -225,12 +202,12 @@ class Raycaster {
         camHeight = h / 2,
         drawStart = -lineHeight / 2 + camHeight;
 
-    _wallSliverTransforms
+    _sliverTransforms
       ..[i + 0] = scale
       ..[i + 1] = 0
       ..[i + 2] = x / 1
       ..[i + 3] = drawStart;
-    _wallSliverRects
+    _sliverRects
       ..[i + 0] = oX + texX
       ..[i + 1] = oY
       ..[i + 2] = oX + texX + 1 / scale
@@ -238,103 +215,6 @@ class Raycaster {
 
     final euclidDistSq = sq(dx) + sq(dy);
     final att = 1 - min(sq(euclidDistSq / 100), 1);
-    _wallSliverColors[x] = greyscale(att, side == 1 ? 255 : 200);
-
-    // Set zbuffer for sprite casting
-    _zbuffer[x] = perpWallDist;
-  }
-
-  void _spritecast(Canvas canvas) {
-    final w = _screen.width;
-    final h = _screen.height;
-
-    // Sprite casting
-    final numSprites = _lvl.sprites.length;
-    final sprites = _lvl.sprites;
-    for (int i = 0; i < numSprites; i++) {
-      _spriteOrder[i] = i;
-      // sqrt not taken, unneeded
-      _spriteDistance[i] = pos.distanceToSquared(sprites[i].pos);
-    }
-
-    combSort(_spriteOrder, _spriteDistance, numSprites);
-
-    // After sorting the sprites, do the projection and draw them
-    for (int i = 0; i < numSprites; i++) {
-      // Translate sprite position to relative to camera
-      final spriteX = sprites[_spriteOrder[i]].pos.x - pos.x;
-      final spriteY = sprites[_spriteOrder[i]].pos.y - pos.y;
-
-      // Transform sprite with the inverse camera matrix
-      // [ planeX   dirX ] -1                                       [ dirY      -dirX ]
-      // [               ]       =  1/(planeX*dirY-dirX*planeY) *   [                 ]
-      // [ planeY   dirY ]                                          [ -planeY  planeX ]
-
-      // Required for correct matrix multiplication
-      final invDet = 1 / (plane.x * dir.y - dir.x * plane.y);
-
-      final transformX = invDet * (dir.y * spriteX - dir.x * spriteY);
-      // this is actually the depth inside the screen, that what Z is in 3D
-      final transformY = invDet * (-plane.y * spriteX + plane.x * spriteY);
-
-      int spriteScreenX = ((w / 2) * (1 + transformX / transformY)).toInt();
-
-      // Calculate height of the sprite on screen
-      // Using "transformY" instead of the real distance prevents fisheye
-      int spriteHeight = (h / transformY).floor().abs();
-      // Calculate lowest and highest pixel to fill in current stripe
-      int drawStartY = (-spriteHeight / 2).floor() + (h / 2).floor();
-      int drawEndY = (spriteHeight / 2).floor() + (h / 2).floor();
-
-      // Calculate width of the sprite
-      int spriteWidth = (h / transformY).floor().abs();
-      int drawStartX = -spriteWidth ~/ 2 + spriteScreenX;
-      if (drawStartX < 0) drawStartX = 0;
-      int drawEndX = spriteWidth ~/ 2 + spriteScreenX;
-      if (drawEndX >= w) drawEndX = (w - 1).floor();
-
-      // Loop through every vertical stripe of the sprite on screen
-      for (int stripe = drawStartX; stripe < drawEndX; stripe++) {
-        int texX =
-            ((stripe - (-spriteWidth / 2 + spriteScreenX)) * texW / spriteWidth)
-                .floor();
-
-        // The conditions in the if are:
-        // 1) it's in front of camera plane so you don't see things behind you
-        // 2) it's on the screen (left)
-        // 3) it's on the screen (right)
-        // 4) ZBuffer, with perpendicular distance
-        if (transformY > 0 &&
-            stripe > 0 &&
-            stripe < w &&
-            transformY < _zbuffer[stripe]) {
-          // texturing calculations
-          final spriteTexNum = sprites[_spriteOrder[i]].tex,
-              // texture offset
-              soX = spriteTexNum % _atlasSize * texW / 1,
-              soY = spriteTexNum ~/ _atlasSize * texH / 1;
-
-          final euclidDistSq = sq(spriteX) + sq(spriteY);
-          final att = 1 - min(sq(euclidDistSq / 100), 1);
-
-          canvas.drawImageRect(
-            _atlas,
-            Rect.fromLTWH(
-              soX + texX,
-              soY,
-              1,
-              texH / 1,
-            ),
-            Rect.fromLTRB(
-              stripe / 1,
-              drawStartY / 1,
-              stripe / 1 + 1,
-              drawEndY / 1,
-            ),
-            _spriteFogLookup[(att * _fogSegs).floor()],
-          );
-        }
-      }
-    }
+    _sliverColors[x] = greyscale(att, side == 1 ? 255 : 200);
   }
 }

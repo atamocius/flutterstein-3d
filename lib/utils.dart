@@ -65,7 +65,6 @@ Future<Level> loadLevel(String key) async {
     // origin the bottom-left of the map array
     _loadVec(d['pos'].cast<double>()),
     _loadVec(d['dir'].cast<double>()),
-    (d['sprites'] as List).map((s) => _loadSprite(s)).toList(),
   );
 }
 
@@ -111,4 +110,3 @@ List<Rect> _loadRects(List rects) =>
     rects.map((r) => Rect.fromLTWH(r[0], r[1], r[2], r[3])).toList();
 
 Vector2 _loadVec(v) => Vector2(v[0], v[1]);
-Sprite _loadSprite(s) => Sprite(_loadVec(s), s[2]);

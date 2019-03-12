@@ -27,7 +27,7 @@ main() async {
   // TODO: Implement swipe left/right to handle weapon switching
 
   // https://pacoup.com/2011/06/12/list-of-true-169-resolutions/
-  final viewSize = Size(320, 180);
+  final viewSize = Size(640, 360);
   final bounds = Offset.zero & viewSize;
 
   final deviceTransform = Float64List(16);
