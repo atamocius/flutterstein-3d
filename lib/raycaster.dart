@@ -60,10 +60,8 @@ class Raycaster {
   final _sliverPaint = Paint();
   final _stride = 4;
 
-  final Rect _ceilRect;
-  final Rect _floorRect;
-  final Paint _ceilPaint;
-  final Paint _floorPaint;
+  final Rect _bgRect;
+  final Paint _bgPaint;
 
   // 1D ZBuffer
   final List<double> _zbuffer;
@@ -80,34 +78,20 @@ class Raycaster {
         dir = _lvl.dir.clone(),
         _atlas = _lvl.atlas,
         _atlasSize = _lvl.atlasSize,
-        _ceilRect = Rect.fromLTRB(0, -20, _screen.width, _screen.height / 2),
-        _floorRect = Rect.fromLTRB(
-            0, _screen.height / 2, _screen.width, _screen.height + 20),
-        _ceilPaint = Paint()
-          ..shader = Gradient.radial(
+        _bgRect = Rect.fromLTRB(0, -20, _screen.width, _screen.height + 20),
+        _bgPaint = Paint()
+          ..shader = Gradient.linear(
             Offset.zero,
-            _screen.height / 2,
-            [Color(0xff83769c), Color(0xff5f574f), Color(0xff000000)],
-            [0, 0.8, 0.9],
-            TileMode.clamp,
-            _64.Matrix4.compose(
-              _64.Vector3(_screen.width / 2, 0, 0),
-              _64.Quaternion.identity(),
-              _64.Vector3(6, 1, 1),
-            ).storage,
-          ),
-        _floorPaint = Paint()
-          ..shader = Gradient.radial(
-            Offset.zero,
-            _screen.height / 2,
-            [Color(0xffffccaa), Color(0xffab5236), Color(0xff000000)],
-            [0, 0.8, 0.9],
-            TileMode.clamp,
-            _64.Matrix4.compose(
-              _64.Vector3(_screen.width / 2, _screen.height, 0),
-              _64.Quaternion.identity(),
-              _64.Vector3(6, 1, 1),
-            ).storage,
+            Offset(0, _screen.height),
+            [
+              0xff83769c,
+              0xff5f574f,
+              0xff000000,
+              0xff000000,
+              0xffab5236,
+              0xffffccaa,
+            ].map((c) => Color(c)).toList(),
+            [0, 0.35, 0.45, 0.55, 0.65, 1],
           ),
         _zbuffer = List.filled(_screen.width ~/ 1, 0),
         _spriteOrder = List(_lvl.sprites.length),
@@ -133,8 +117,7 @@ class Raycaster {
   void render(Canvas canvas) {
     for (int x = 0; x < _screen.width; x++) _raycast(x);
 
-    canvas.drawRect(_ceilRect, _ceilPaint);
-    canvas.drawRect(_floorRect, _floorPaint);
+    canvas.drawRect(_bgRect, _bgPaint);
 
     canvas.drawRawAtlas(
       _atlas,
