@@ -197,8 +197,7 @@ class Raycaster {
 
     final i = x * _stride,
         scale = lineHeight / texH,
-        camHeight = h / 2,
-        drawStart = -lineHeight / 2 + camHeight;
+        drawStart = -lineHeight / 2 + h / 2;
 
     _sliverTransforms
       ..[i + 0] = scale
