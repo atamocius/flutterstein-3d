@@ -27,8 +27,7 @@ class Game {
         stfL = btn(1),
         stfR = btn(3),
         rotL = btn(4),
-        rotR = btn(5),
-        shoot = btn(6);
+        rotR = btn(5);
 
     var move = _moveSpeed * t,
         rot = _rotSpeed * t,
