@@ -40,6 +40,7 @@ flutter:
   #  - images/a_dot_ham.jpeg
   assets:
     - data/buttons.json
+    - data/level.json
     - img/gui.png
     - img/wolf3d.png
   # An image asset can refer to one or more resolution-specific "variants", see

@@ -3,7 +3,9 @@ import 'dart:convert';
 import 'dart:typed_data';
 import 'dart:ui';
 import 'package:flutter/services.dart';
+import 'package:vector_math/vector_math.dart';
 import 'buttons.dart';
+import 'level.dart';
 
 double frac(double v) => v - v.floor();
 double invAbs(double v) => (1 / v).abs();
@@ -53,6 +55,20 @@ Future<Image> loadImage(String key) async {
   return c.future;
 }
 
+Future<Level> loadLevel(String key) async {
+  final d = jsonDecode(await rootBundle.loadString(key));
+  return Level(
+    d['map'].cast<int>(),
+    d['mapSize'],
+    await loadImage(d['atlas']),
+    d['atlasSize'],
+    // origin the bottom-left of the map array
+    _loadVec(d['pos'].cast<double>()),
+    _loadVec(d['dir'].cast<double>()),
+    (d['sprites'] as List).map((s) => _loadSprite(s)).toList(),
+  );
+}
+
 Future<Buttons> loadButtons(
   String key,
   double pixelRatio,
@@ -60,8 +76,7 @@ Future<Buttons> loadButtons(
   Rect bounds,
   Image atlas,
 ) async {
-  final data = jsonDecode(await rootBundle.loadString(key));
-  final d = data['buttons'];
+  final d = jsonDecode(await rootBundle.loadString(key));
   return Buttons(
     pixelRatio,
     (d['transforms'] as List)
@@ -94,3 +109,6 @@ Future<Buttons> loadButtons(
 
 List<Rect> _loadRects(List rects) =>
     rects.map((r) => Rect.fromLTWH(r[0], r[1], r[2], r[3])).toList();
+
+Vector2 _loadVec(v) => Vector2(v[0], v[1]);
+Sprite _loadSprite(s) => Sprite(_loadVec(s), s[2]);
