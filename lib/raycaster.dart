@@ -17,7 +17,6 @@ import 'dart:ui';
 import 'dart:math';
 import 'dart:typed_data';
 import 'package:vector_math/vector_math.dart';
-import 'package:vector_math/vector_math_64.dart' as _64;
 import 'utils.dart';
 import 'level.dart';
 
@@ -74,12 +73,12 @@ class Raycaster {
             Offset.zero,
             Offset(0, _screen.height),
             [
-              0xff83769c,
-              0xff5f574f,
+              _lvl.ceil[0],
+              _lvl.ceil[1],
               0xff000000,
               0xff000000,
-              0xffab5236,
-              0xffffccaa,
+              _lvl.floor[1],
+              _lvl.floor[0],
             ].map((c) => Color(c)).toList(),
             [0, 0.35, 0.45, 0.55, 0.65, 1],
           ) {
@@ -110,8 +109,7 @@ class Raycaster {
   }
 
   void _raycast(int x) {
-    final w = _screen.width;
-    final h = _screen.height;
+    final w = _screen.width, h = _screen.height;
 
     // calculate ray position and direction
     final cameraX = 2 * x / w - 1; // x-coordinate in camera space
@@ -213,8 +211,8 @@ class Raycaster {
       ..[i + 2] = oX + texX + 1 / scale
       ..[i + 3] = oY + texH;
 
-    final euclidDistSq = sq(dx) + sq(dy);
-    final att = 1 - min(sq(euclidDistSq / 100), 1);
+    final distSq = sq(dx) + sq(dy);
+    final att = 1 - min(sq(distSq / 100), 1);
     _sliverColors[x] = greyscale(att, side == 1 ? 255 : 200);
   }
 }

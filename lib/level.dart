@@ -12,6 +12,7 @@ class Level {
   // Camera position
   final Vector2 pos, // Camera position
       dir; // Direction vector
+  final List<int> ceil, floor;
 
   Level(
     this._map,
@@ -20,6 +21,8 @@ class Level {
     this.atlasSize,
     this.pos,
     this.dir,
+    this.ceil,
+    this.floor,
   );
 
   // Convert coordinates to map index (but Y is flipped)

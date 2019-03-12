@@ -65,6 +65,8 @@ Future<Level> loadLevel(String key) async {
     // origin the bottom-left of the map array
     _loadVec(d['pos'].cast<double>()),
     _loadVec(d['dir'].cast<double>()),
+    d['ceil'].cast<int>(),
+    d['floor'].cast<int>(),
   );
 }
 
