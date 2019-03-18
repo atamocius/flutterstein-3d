@@ -21,7 +21,7 @@ import 'utils.dart';
 import 'level.dart';
 
 // Texture size
-const texW = 64, texH = 64;
+const texW = 32, texH = 32;
 
 class Raycaster {
   final Level _lvl;
