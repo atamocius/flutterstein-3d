@@ -6,7 +6,11 @@ import 'dart:typed_data';
 import 'package:flutter/services.dart';
 import 'package:vector_math/vector_math.dart';
 
-var w = window, rb = rootBundle, vz = Vector2.zero(), c0 = 0xff000000;
+var w = window,
+    rb = rootBundle,
+    vz = Vector2.zero(),
+    c0 = 0xff000000,
+    jdc = jsonDecode;
 typedef bool P(int btn);
 
 num fr(num v) => v - v.floor();
@@ -15,7 +19,7 @@ num sq(num v) => v * v;
 int co(b, s, p) => (((b * s).floor() & 0xff) << p);
 
 int gs(num s, [int b = 255]) =>
-    (0xff000000 | co(b, s, 16) | co(b, s, 8) | co(b, s, 0)) & 0xFFFFFFFF;
+    (c0 | co(b, s, 16) | co(b, s, 8) | co(b, s, 0)) & 0xFFFFFFFF;
 
 it(d) => d.cast<int>();
 dt(d) => d.cast<double>();
@@ -29,13 +33,13 @@ Future<Image> li(String k) async {
 }
 
 Future<L> ll(String k) async {
-  var d = jsonDecode(await rb.loadString(k));
+  var d = jdc(await rb.loadString(k));
   return L(it(d['m']), d['ms'], await li(d['i']), d['is'], v(dt(d['p'])),
       v(dt(d['d'])), it(d['c']), it(d['f']));
 }
 
 Future<B> lb(String k, double r, double s, Rect b, Image i) async {
-  var d = jsonDecode(await rb.loadString(k));
+  var d = jdc(await rb.loadString(k));
   return B(
       r,
       (d['t'] as List)
@@ -78,7 +82,7 @@ class L {
 
   L(this.m, this.s, this.i, this.a, this.p, this.d, this.c, this.f);
 
-  int get(num x, num y) => m[(s - y.floor() - 1) * s + x.floor()];
+  int g(num x, num y) => m[(s - y.floor() - 1) * s + x.floor()];
 }
 
 class B {
@@ -206,7 +210,7 @@ class R {
         sd = 1;
       }
 
-      if (_l.get(mX, mY) > 0) ht = 1;
+      if (_l.g(mX, mY) > 0) ht = 1;
     }
 
     var dx = mX - p.x,
@@ -221,7 +225,7 @@ class R {
     if (sd == 0 && _rd.x > 0) tX = tW - tX - 1;
     if (sd == 1 && _rd.y < 0) tX = tW - tX - 1;
 
-    var tn = _l.get(mX, mY) - 1,
+    var tn = _l.g(mX, mY) - 1,
         oX = tn % _is * tW / 1,
         oY = tn ~/ _is * tW / 1,
         i = x * _se,
@@ -302,20 +306,20 @@ class G {
   }
 
   _tl(L l, Vector2 p, Vector2 d, double w) {
-    if (l.get(p.x + d.x, p.y) == 0) p.x += d.x;
-    if (l.get(p.x, p.y + d.y) == 0) p.y += d.y;
+    if (l.g(p.x + d.x, p.y) == 0) p.x += d.x;
+    if (l.g(p.x, p.y + d.y) == 0) p.y += d.y;
 
     var fX = fr(p.x), fY = fr(p.y);
 
     if (d.x < 0) {
-      if (l.get(p.x - 1, p.y) > 0 && fX < w) p.x += w - fX;
+      if (l.g(p.x - 1, p.y) > 0 && fX < w) p.x += w - fX;
     } else {
-      if (l.get(p.x + 1, p.y) > 0 && fX > 1 - w) p.x -= fX - (1 - w);
+      if (l.g(p.x + 1, p.y) > 0 && fX > 1 - w) p.x -= fX - (1 - w);
     }
     if (d.y < 0) {
-      if (l.get(p.x, p.y - 1) > 0 && fY < w) p.y += w - fY;
+      if (l.g(p.x, p.y - 1) > 0 && fY < w) p.y += w - fY;
     } else {
-      if (l.get(p.x, p.y + 1) > 0 && fY > 1 - w) p.y -= fY - (1 - w);
+      if (l.g(p.x, p.y + 1) > 0 && fY > 1 - w) p.y -= fY - (1 - w);
     }
   }
 }
@@ -331,7 +335,7 @@ main() async {
   Offset o;
   B bs;
 
-  var hmc = () async {
+  var h = () async {
     var sz = w.physicalSize, r = sz.shortestSide / vs.shortestSide;
 
     dt
@@ -346,13 +350,10 @@ main() async {
         Offset.zero & sz / r, ba);
   };
 
-  hmc();
-  w.onMetricsChanged = hmc;
+  h();
+  w.onMetricsChanged = h;
 
-  var lvl = await ll('data/level.json'),
-      g = G(vs, lvl),
-      z = Duration.zero,
-      pv = z;
+  var l = await ll('data/level.json'), g = G(vs, l), z = Duration.zero, pv = z;
 
   w.onBeginFrame = (n) {
     var r = PictureRecorder(),
