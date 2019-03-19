@@ -13,32 +13,31 @@ var w = window,
     jdc = jsonDecode;
 typedef bool P(int btn);
 
-num fr(num v) => v - v.floor();
-num iA(num v) => (1 / v).abs();
-num sq(num v) => v * v;
-int co(b, s, p) => (((b * s).floor() & 0xff) << p);
+fr(v) => v - v.floor();
+iA(v) => (1 / v).abs();
+sq(v) => v * v;
+co(b, s, p) => (((b * s).floor() & 0xff) << p);
 
-int gs(num s, [int b = 255]) =>
+gs(s, [b = 255]) =>
     (c0 | co(b, s, 16) | co(b, s, 8) | co(b, s, 0)) & 0xFFFFFFFF;
 
 it(d) => d.cast<int>();
 dt(d) => d.cast<double>();
 
-Future<Image> li(String k) async {
-  var d = await rb.load(k),
-      b = Uint8List.view(d.buffer),
-      c = Completer<Image>();
-  decodeImageFromList(b, (i) => c.complete(i));
+li(k) async {
+  var c = Completer<Image>();
+  decodeImageFromList(
+      Uint8List.view((await rb.load(k)).buffer), (i) => c.complete(i));
   return c.future;
 }
 
-Future<L> ll(String k) async {
+ll(k) async {
   var d = jdc(await rb.loadString(k));
   return L(it(d['m']), d['ms'], await li(d['i']), d['is'], v(dt(d['p'])),
       v(dt(d['d'])), it(d['c']), it(d['f']));
 }
 
-Future<B> lb(String k, double r, double s, Rect b, Image i) async {
+lb(k, r, s, b, i) async {
   var d = jdc(await rb.loadString(k));
   return B(
       r,
@@ -69,10 +68,9 @@ Future<B> lb(String k, double r, double s, Rect b, Image i) async {
       i);
 }
 
-List<Rect> rt(List l) =>
-    l.map((r) => Rect.fromLTWH(r[0], r[1], r[2], r[3])).toList();
+rt(List l) => l.map((r) => Rect.fromLTWH(r[0], r[1], r[2], r[3])).toList();
 
-Vector2 v(v) => Vector2(v[0], v[1]);
+v(v) => Vector2(v[0], v[1]);
 
 class L {
   Image i;
@@ -82,11 +80,11 @@ class L {
 
   L(this.m, this.s, this.i, this.a, this.p, this.d, this.c, this.f);
 
-  int g(num x, num y) => m[(s - y.floor() - 1) * s + x.floor()];
+  g(x, y) => m[(s - y.floor() - 1) * s + x.floor()];
 }
 
 class B {
-  double r;
+  num r;
   List<RSTransform> t;
   List<Rect> u, d, e;
   List<int> m;
@@ -105,7 +103,7 @@ class B {
     c.drawAtlas(i, t, e, o, BlendMode.dstIn, null, p);
   }
 
-  bool b(int b) => s & m[b] > 0;
+  bool b(b) => s & m[b] > 0;
 
   ud(List<PointerData> p) {
     s = 0;
@@ -171,7 +169,7 @@ class R {
     c.drawRawAtlas(_i, _st, _sr, _sc, BlendMode.modulate, null, _sp);
   }
 
-  _rc(int x) {
+  _rc(x) {
     var w = _s.width, h = _s.height, cX = 2 * x / w - 1;
 
     _rd
@@ -233,12 +231,12 @@ class R {
         ds = -lh / 2 + h / 2;
 
     _st
-      ..[i + 0] = sc
+      ..[i] = sc
       ..[i + 1] = 0
       ..[i + 2] = x / 1
       ..[i + 3] = ds;
     _sr
-      ..[i + 0] = oX + tX
+      ..[i] = oX + tX
       ..[i + 1] = oY
       ..[i + 2] = oX + tX + 1 / sc
       ..[i + 3] = oY + tW;
@@ -257,11 +255,11 @@ class G {
       _rs = 1.7,
       _w = 0.2;
 
-  double _bt = 0.0, _bf = 10, _ba = 2;
+  num _bt = 0.0, _bf = 10, _ba = 2;
 
   G(Size s, this._l) : _r = R(s, _l);
 
-  u(double t, P b) {
+  u(t, b) {
     var fw = b(0),
         bw = b(2),
         sL = b(1),
@@ -305,7 +303,7 @@ class G {
     c.restore();
   }
 
-  _tl(L l, Vector2 p, Vector2 d, double w) {
+  _tl(l, p, d, w) {
     if (l.g(p.x + d.x, p.y) == 0) p.x += d.x;
     if (l.g(p.x, p.y + d.y) == 0) p.y += d.y;
 
