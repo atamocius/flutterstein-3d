@@ -17,7 +17,7 @@ On-screen controls have also been implemented using `PointerData`, with _inflate
 >
 > Due to the 5KB restriction, I can't really add any game logic. However, when I built the level, I hid 9 other Flutter logos (10 if you count the first logo at the start) within the level, see if you can find them all before reaching the exit (the exit is another _elevator_).
 >
-> If you want to see where all of the logos are hidden, [here is the map](/captures/level_map?raw=true)
+> If you want to see where all of the logos are hidden, [here is the map](/captures/level_map.png?raw=true)
 
 ## Running the app
 
