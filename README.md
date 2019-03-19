@@ -2,6 +2,8 @@
 
 A 3D raycaster implemented in Flutter.
 
+> This app was submitted as an entry to the [Flutter 5KB Challenge](https://flutter.dev/create).
+
 ![Gameplay 0](/captures/gameplay0_320x180.gif?raw=true)
 ![Gameplay 1](/captures/gameplay1_320x180.gif?raw=true)
 ![Gameplay 2](/captures/gameplay2_320x180.gif?raw=true)
