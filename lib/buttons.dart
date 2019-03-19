@@ -13,6 +13,10 @@ class Buttons {
   final Paint _paint;
   int _state;
 
+  // final _debugPaint = Paint()
+  //   ..color = Color(0xFFFFF1E8)
+  //   ..style = PaintingStyle.stroke;
+
   Buttons(
     this._pixelRatio,
     this._transforms,
@@ -36,6 +40,11 @@ class Buttons {
       null,
       _paint,
     );
+
+    // Draw button hit areas
+    // for (int i = 0; i < _areas.length; i++) {
+    //   canvas.drawRRect(_areas[i], _debugPaint);
+    // }
   }
 
   bool pressed(int btn) => _state & _masks[btn] > 0;

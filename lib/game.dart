@@ -17,7 +17,7 @@ class Game {
 
   double _bobTime = 0.0;
   double _bobFreq = 10; // Frequency
-  double _bobAmp = 1.2; // Amplitude
+  double _bobAmp = 2; // Amplitude
 
   Game(Size screen, this._lvl) : _rc = Raycaster(screen, _lvl);
 
@@ -27,8 +27,7 @@ class Game {
         stfL = btn(1),
         stfR = btn(3),
         rotL = btn(4),
-        rotR = btn(5),
-        shoot = btn(6);
+        rotR = btn(5);
 
     var move = _moveSpeed * t,
         rot = _rotSpeed * t,

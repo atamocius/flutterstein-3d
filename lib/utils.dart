@@ -10,62 +10,34 @@ import 'level.dart';
 double frac(double v) => v - v.floor();
 double invAbs(double v) => (1 / v).abs();
 num sq(num v) => v * v;
+int col(b, s, p) => (((b * s).floor() & 0xff) << p);
 
 int greyscale(num s, [int b = 255]) =>
-    // (((255 & 0xff) << 24) |
-    (0xff000000 |
-        (((b * s).floor() & 0xff) << 16) |
-        (((b * s).floor() & 0xff) << 8) |
-        (((b * s).floor() & 0xff) << 0)) &
-    0xFFFFFFFF;
+    (0xff000000 | col(b, s, 16) | col(b, s, 8) | col(b, s, 0)) & 0xFFFFFFFF;
 
-void combSort(List<int> order, List<double> dist, int amount) {
-  var gap = amount;
-  var swapped = false;
-
-  while (gap > 1 || swapped) {
-    //shrink factor 1.3
-    gap = (gap * 10) ~/ 13;
-    if (gap == 9 || gap == 10) gap = 11;
-    if (gap < 1) gap = 1;
-    swapped = false;
-
-    for (int i = 0; i < amount - gap; i++) {
-      int j = i + gap;
-      if (dist[i] < dist[j]) {
-        num tmp = dist[i];
-        dist[i] = dist[j];
-        dist[j] = tmp;
-
-        tmp = order[i];
-        order[i] = order[j];
-        order[j] = tmp;
-
-        swapped = true;
-      }
-    }
-  }
-}
+ilst(d) => d.cast<int>();
+dlst(d) => d.cast<double>();
 
 Future<Image> loadImage(String key) async {
-  final data = await rootBundle.load(key);
-  final buffer = Uint8List.view(data.buffer);
+  final d = await rootBundle.load(key);
+  final b = Uint8List.view(d.buffer);
   final c = Completer<Image>();
-  decodeImageFromList(buffer, (img) => c.complete(img));
+  decodeImageFromList(b, (i) => c.complete(i));
   return c.future;
 }
 
 Future<Level> loadLevel(String key) async {
   final d = jsonDecode(await rootBundle.loadString(key));
   return Level(
-    d['map'].cast<int>(),
+    ilst(d['map']),
     d['mapSize'],
     await loadImage(d['atlas']),
     d['atlasSize'],
     // origin the bottom-left of the map array
-    _loadVec(d['pos'].cast<double>()),
-    _loadVec(d['dir'].cast<double>()),
-    (d['sprites'] as List).map((s) => _loadSprite(s)).toList(),
+    vec(dlst(d['pos'])),
+    vec(dlst(d['dir'])),
+    ilst(d['ceil']),
+    ilst(d['floor']),
   );
 }
 
@@ -89,9 +61,9 @@ Future<Buttons> loadButtons(
               translateY: t[2] * bounds.height + t[4] * scale,
             ))
         .toList(),
-    _loadRects(d['upRects']),
-    _loadRects(d['dnRects']),
-    d['masks'].cast<int>(),
+    rects(d['upRects']),
+    rects(d['dnRects']),
+    ilst(d['masks']),
     (d['colors'] as List).map((c) => Color(c)).toList(),
     (d['areas'] as List)
         .map((a) => RRect.fromRectAndRadius(
@@ -107,8 +79,7 @@ Future<Buttons> loadButtons(
   );
 }
 
-List<Rect> _loadRects(List rects) =>
+List<Rect> rects(List rects) =>
     rects.map((r) => Rect.fromLTWH(r[0], r[1], r[2], r[3])).toList();
 
-Vector2 _loadVec(v) => Vector2(v[0], v[1]);
-Sprite _loadSprite(s) => Sprite(_loadVec(s), s[2]);
+Vector2 vec(v) => Vector2(v[0], v[1]);

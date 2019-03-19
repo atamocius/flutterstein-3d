@@ -1,12 +1,8 @@
-// https://gist.github.com/netsmertia/9c588f23391c781fa1eb791f0dce0768
-
 import 'dart:ui';
 import 'dart:typed_data';
 import 'package:flutter/services.dart';
-import 'package:vector_math/vector_math.dart';
 import 'utils.dart';
 import 'game.dart';
-import 'level.dart';
 import 'buttons.dart';
 
 main() async {
@@ -14,20 +10,7 @@ main() async {
   await SystemChrome.setPreferredOrientations(
       [DeviceOrientation.landscapeLeft, DeviceOrientation.landscapeRight]);
 
-  // print(
-  //     '>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> ${window.physicalSize}');
-  // print(
-  //     '>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> $initialSize');
-  // print(
-  //     '<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< ${window.physicalSize.height / 360}');
-  // print(
-  //     '<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< ${initialSize / 360}');
-
-  // TODO: Add "start/pause" button
-  // TODO: Implement swipe left/right to handle weapon switching
-
-  // https://pacoup.com/2011/06/12/list-of-true-169-resolutions/
-  final viewSize = Size(320, 180);
+  final viewSize = Size(640, 360);
   final bounds = Offset.zero & viewSize;
 
   final deviceTransform = Float64List(16);
@@ -72,13 +55,11 @@ main() async {
     prev = now;
     final t = delta.inMicroseconds / 1000000;
 
-    print(1.0 / t); // FPS counter
+    // FPS counter
+    // print(1.0 / t);
 
-    // canvas.drawColor(Color(0xFF1D2B53), BlendMode.src);
-    // canvas.drawPaint(Paint()..color = Color(0xFF1D2B53));
     canvas.save();
     canvas.translate(offset.dx, offset.dy);
-    // canvas.drawRect(bounds, Paint()..color = Color(0xFF1D2B53));
     canvas.clipRect(bounds);
     game.update(t, btns.pressed);
     game.render(canvas);
@@ -86,14 +67,6 @@ main() async {
 
     // Draw buttons
     btns.render(canvas);
-
-    // Draw button hit areas
-    // final debugPaint = Paint()
-    //   ..color = Color(0xFFFFF1E8)
-    //   ..style = PaintingStyle.stroke;
-    // for (int i = 0; i < btnAreas.length; i++) {
-    //   canvas.drawRRect(btnAreas[i], debugPaint);
-    // }
 
     final picture = recorder.endRecording();
     final builder = SceneBuilder()
