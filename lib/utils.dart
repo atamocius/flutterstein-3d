@@ -18,16 +18,16 @@ int greyscale(num s, [int b = 255]) =>
 ilst(d) => d.cast<int>();
 dlst(d) => d.cast<double>();
 
-Future<Image> loadImage(String key) async {
-  final d = await rootBundle.load(key);
+Future<Image> loadImage(String k) async {
+  final d = await rootBundle.load(k);
   final b = Uint8List.view(d.buffer);
   final c = Completer<Image>();
   decodeImageFromList(b, (i) => c.complete(i));
   return c.future;
 }
 
-Future<Level> loadLevel(String key) async {
-  final d = jsonDecode(await rootBundle.loadString(key));
+Future<Level> loadLevel(String k) async {
+  final d = jsonDecode(await rootBundle.loadString(k));
   return Level(
     ilst(d['map']),
     d['mapSize'],
@@ -41,23 +41,18 @@ Future<Level> loadLevel(String key) async {
 }
 
 Future<Buttons> loadButtons(
-  String key,
-  double pixelRatio,
-  double scale,
-  Rect bounds,
-  Image atlas,
-) async {
-  final d = jsonDecode(await rootBundle.loadString(key));
+    String k, double r, double s, Rect b, Image i) async {
+  final d = jsonDecode(await rootBundle.loadString(k));
   return Buttons(
-    pixelRatio,
+    r,
     (d['transforms'] as List)
         .map((t) => RSTransform.fromComponents(
               rotation: t[0],
-              scale: scale,
+              scale: s,
               anchorX: 0,
               anchorY: 0,
-              translateX: t[1] * bounds.width + t[3] * scale,
-              translateY: t[2] * bounds.height + t[4] * scale,
+              translateX: t[1] * b.width + t[3] * s,
+              translateY: t[2] * b.height + t[4] * s,
             ))
         .toList(),
     rects(d['upRects']),
@@ -67,18 +62,18 @@ Future<Buttons> loadButtons(
     (d['areas'] as List)
         .map((a) => RRect.fromRectAndRadius(
               Rect.fromCircle(
-                center: Offset(a[0], a[1]) * scale +
-                    Offset(a[3] * bounds.width, a[4] * bounds.height),
-                radius: a[2] * scale,
+                center: Offset(a[0], a[1]) * s +
+                    Offset(a[3] * b.width, a[4] * b.height),
+                radius: a[2] * s,
               ),
-              Radius.circular(a[2] * scale),
+              Radius.circular(a[2] * s),
             ))
         .toList(),
-    atlas,
+    i,
   );
 }
 
-List<Rect> rects(List rects) =>
-    rects.map((r) => Rect.fromLTWH(r[0], r[1], r[2], r[3])).toList();
+List<Rect> rects(List l) =>
+    l.map((r) => Rect.fromLTWH(r[0], r[1], r[2], r[3])).toList();
 
 Vector2 vec(v) => Vector2(v[0], v[1]);
