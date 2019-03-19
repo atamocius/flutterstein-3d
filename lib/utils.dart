@@ -27,7 +27,7 @@ Future<Image> loadImage(String k) async {
 }
 
 Future<Level> loadLevel(String k) async {
-  final d = jsonDecode(await rootBundle.loadString(k));
+  var d = jsonDecode(await rootBundle.loadString(k));
   return Level(
     ilst(d['map']),
     d['mapSize'],
@@ -42,7 +42,7 @@ Future<Level> loadLevel(String k) async {
 
 Future<Buttons> loadButtons(
     String k, double r, double s, Rect b, Image i) async {
-  final d = jsonDecode(await rootBundle.loadString(k));
+  var d = jsonDecode(await rootBundle.loadString(k));
   return Buttons(
     r,
     (d['transforms'] as List)

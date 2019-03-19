@@ -2,11 +2,11 @@ import 'dart:ui';
 import 'package:vector_math/vector_math.dart';
 
 class Level {
-  final List<int> _map;
-  final Image atlas;
-  final int mapSize, atlasSize;
-  final Vector2 pos, dir;
-  final List<int> ceil, floor;
+  List<int> _map;
+  Image atlas;
+  int mapSize, atlasSize;
+  Vector2 pos, dir;
+  List<int> ceil, floor;
 
   Level(
     this._map,

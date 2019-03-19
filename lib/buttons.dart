@@ -3,14 +3,14 @@ import 'dart:ui';
 typedef bool Pressed(int btn);
 
 class Buttons {
-  final double _pixelRatio;
-  final List<RSTransform> _transforms;
-  final List<Rect> _upRects, _dnRects, _rects;
-  final List<int> _masks;
-  final List<Color> _colors;
-  final List<RRect> _areas;
-  final Image _atlas;
-  final Paint _paint;
+  double _pixelRatio;
+  List<RSTransform> _transforms;
+  List<Rect> _upRects, _dnRects, _rects;
+  List<int> _masks;
+  List<Color> _colors;
+  List<RRect> _areas;
+  Image _atlas;
+  Paint _paint;
   int _state;
 
   Buttons(
@@ -26,8 +26,8 @@ class Buttons {
         _rects = List<Rect>.from(_upRects),
         _paint = Paint();
 
-  void render(Canvas canvas) {
-    canvas.drawAtlas(
+  render(Canvas c) {
+    c.drawAtlas(
       _atlas,
       _transforms,
       _rects,
@@ -40,9 +40,9 @@ class Buttons {
 
   bool pressed(int btn) => _state & _masks[btn] > 0;
 
-  void update(List<PointerData> data) {
+  update(List<PointerData> p) {
     _state = 0;
-    for (final d in data)
+    for (final d in p)
       if (d.change == PointerChange.up)
         _state = 0;
       else {

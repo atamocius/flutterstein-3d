@@ -7,9 +7,9 @@ import 'level.dart';
 import 'buttons.dart';
 
 class Game {
-  final Raycaster _rc;
-  final Level _lvl;
-  final _rotMat = Matrix2.identity(),
+  Raycaster _rc;
+  Level _lvl;
+  var _rotMat = Matrix2.identity(),
       _moveVec = Vector2.zero(),
       _moveSpeed = 3.0,
       _rotSpeed = 1.7,
@@ -21,13 +21,13 @@ class Game {
 
   Game(Size screen, this._lvl) : _rc = Raycaster(screen, _lvl);
 
-  void update(double t, Pressed btn) {
-    var fwd = btn(0),
-        bwd = btn(2),
-        stfL = btn(1),
-        stfR = btn(3),
-        rotL = btn(4),
-        rotR = btn(5);
+  void update(double t, Pressed b) {
+    var fwd = b(0),
+        bwd = b(2),
+        stfL = b(1),
+        stfR = b(3),
+        rotL = b(4),
+        rotR = b(5);
 
     var move = _moveSpeed * t,
         rot = _rotSpeed * t,
@@ -57,19 +57,19 @@ class Game {
     }
   }
 
-  void render(Canvas canvas) {
+  render(Canvas canvas) {
     canvas.save();
     canvas.translate(0, sin((pi / 2) * _bobTime) * _bobAmp);
     _rc.render(canvas);
     canvas.restore();
   }
 
-  void _translate(Level l, Vector2 p, Vector2 d, double w) {
+  _translate(Level l, Vector2 p, Vector2 d, double w) {
     if (l.get(p.x + d.x, p.y) == 0) p.x += d.x;
     if (l.get(p.x, p.y + d.y) == 0) p.y += d.y;
 
-    final fX = frac(p.x);
-    final fY = frac(p.y);
+    var fX = frac(p.x);
+    var fY = frac(p.y);
 
     if (d.x < 0) {
       if (l.get(p.x - 1, p.y) > 0 && fX < w) p.x += w - fX;

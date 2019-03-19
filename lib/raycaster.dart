@@ -5,27 +5,27 @@ import 'package:vector_math/vector_math.dart';
 import 'utils.dart';
 import 'level.dart';
 
-const texW = 32, texH = 32;
+var texW = 32, texH = 32;
 
 class Raycaster {
-  final Level _lvl;
-  final Size _screen;
-  final Vector2 pos;
-  final Vector2 dir;
+  Level _lvl;
+  Size _screen;
+  Vector2 pos;
+  Vector2 dir;
   Vector2 plane;
-  final _planeHalfW = 0.85;
-  final _sideDist = Vector2.zero();
-  final _deltaDist = Vector2.zero();
-  final _rayDir = Vector2.zero();
-  final Image _atlas;
-  final int _atlasSize;
+  var _planeHalfW = 0.85;
+  var _sideDist = Vector2.zero();
+  var _deltaDist = Vector2.zero();
+  var _rayDir = Vector2.zero();
+  Image _atlas;
+  int _atlasSize;
   Float32List _sliverTransforms;
   Float32List _sliverRects;
   Int32List _sliverColors;
-  final _sliverPaint = Paint();
-  final _stride = 4;
-  final Rect _bgRect;
-  final Paint _bgPaint;
+  var _sliverPaint = Paint();
+  var _stride = 4;
+  Rect _bgRect;
+  Paint _bgPaint;
 
   Raycaster(this._screen, this._lvl)
       : pos = _lvl.pos.clone(),
@@ -57,12 +57,12 @@ class Raycaster {
     _sliverColors = Int32List(w);
   }
 
-  void render(Canvas canvas) {
+  render(Canvas c) {
     for (int x = 0; x < _screen.width; x++) _raycast(x);
 
-    canvas.drawRect(_bgRect, _bgPaint);
+    c.drawRect(_bgRect, _bgPaint);
 
-    canvas.drawRawAtlas(
+    c.drawRawAtlas(
       _atlas,
       _sliverTransforms,
       _sliverRects,
@@ -73,9 +73,9 @@ class Raycaster {
     );
   }
 
-  void _raycast(int x) {
-    final w = _screen.width, h = _screen.height;
-    final cameraX = 2 * x / w - 1;
+  _raycast(int x) {
+    var w = _screen.width, h = _screen.height;
+    var cameraX = 2 * x / w - 1;
 
     _rayDir.setZero();
     _rayDir
@@ -120,14 +120,14 @@ class Raycaster {
       if (_lvl.get(mapX, mapY) > 0) hit = 1;
     }
 
-    final dx = mapX - pos.x;
-    final dy = mapY - pos.y;
+    var dx = mapX - pos.x;
+    var dy = mapY - pos.y;
 
-    final perpWallDist = side == 0
+    var perpWallDist = side == 0
         ? (dx + (1 - stepX) / 2) / _rayDir.x
         : (dy + (1 - stepY) / 2) / _rayDir.y;
 
-    final lineHeight = h / perpWallDist;
+    var lineHeight = h / perpWallDist;
 
     var wallX = side == 0
         ? pos.y + perpWallDist * _rayDir.y
@@ -138,11 +138,11 @@ class Raycaster {
     if (side == 0 && _rayDir.x > 0) texX = texW - texX - 1;
     if (side == 1 && _rayDir.y < 0) texX = texW - texX - 1;
 
-    final texNum = _lvl.get(mapX, mapY) - 1,
+    var texNum = _lvl.get(mapX, mapY) - 1,
         oX = texNum % _atlasSize * texW / 1,
         oY = texNum ~/ _atlasSize * texH / 1;
 
-    final i = x * _stride,
+    var i = x * _stride,
         scale = lineHeight / texH,
         drawStart = -lineHeight / 2 + h / 2;
 
@@ -157,8 +157,8 @@ class Raycaster {
       ..[i + 2] = oX + texX + 1 / scale
       ..[i + 3] = oY + texH;
 
-    final distSq = sq(dx) + sq(dy);
-    final att = 1 - min(sq(distSq / 100), 1);
+    var distSq = sq(dx) + sq(dy);
+    var att = 1 - min(sq(distSq / 100), 1);
     _sliverColors[x] = greyscale(att, side == 1 ? 255 : 200);
   }
 }

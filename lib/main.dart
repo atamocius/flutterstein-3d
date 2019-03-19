@@ -10,16 +10,16 @@ main() async {
   await SystemChrome.setPreferredOrientations(
       [DeviceOrientation.landscapeLeft, DeviceOrientation.landscapeRight]);
 
-  final viewSize = Size(640, 360);
-  final bounds = Offset.zero & viewSize;
+  var viewSize = Size(640, 360);
+  var bounds = Offset.zero & viewSize;
 
-  final deviceTransform = Float64List(16);
+  var deviceTransform = Float64List(16);
   Offset offset;
   Buttons btns;
-  final btnAtlas = await loadImage('img/gui.png');
+  var btnAtlas = await loadImage('img/gui.png');
 
-  final handleMetricsChanged = () async {
-    final size = window.physicalSize,
+  var handleMetricsChanged = () async {
+    var size = window.physicalSize,
         pixelRatio = size.shortestSide / viewSize.shortestSide;
 
     deviceTransform
@@ -42,30 +42,30 @@ main() async {
   handleMetricsChanged();
   window.onMetricsChanged = handleMetricsChanged;
 
-  final lvl = await loadLevel('data/level.json');
-  final game = Game(viewSize, lvl);
-  final zero = Duration.zero;
+  var lvl = await loadLevel('data/level.json');
+  var g = Game(viewSize, lvl);
+  var zero = Duration.zero;
   var prev = zero;
 
   window.onBeginFrame = (now) {
-    final recorder = PictureRecorder();
-    final canvas = Canvas(recorder, bounds);
+    var recorder = PictureRecorder();
+    var c = Canvas(recorder, bounds);
 
-    final delta = prev == zero ? zero : now - prev;
+    var delta = prev == zero ? zero : now - prev;
     prev = now;
-    final t = delta.inMicroseconds / 1000000;
+    var t = delta.inMicroseconds / 1000000;
 
-    canvas.save();
-    canvas.translate(offset.dx, offset.dy);
-    canvas.clipRect(bounds);
-    game.update(t, btns.pressed);
-    game.render(canvas);
-    canvas.restore();
+    c.save();
+    c.translate(offset.dx, offset.dy);
+    c.clipRect(bounds);
+    g.update(t, btns.pressed);
+    g.render(c);
+    c.restore();
 
-    btns.render(canvas);
+    btns.render(c);
 
-    final picture = recorder.endRecording();
-    final builder = SceneBuilder()
+    var picture = recorder.endRecording();
+    var builder = SceneBuilder()
       ..pushTransform(deviceTransform)
       ..addPicture(Offset.zero, picture)
       ..pop();
