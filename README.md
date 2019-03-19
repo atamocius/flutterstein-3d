@@ -1,18 +1,20 @@
-# cinco_kilo_bravo
+# Flutterstein 3D
 
-A new Flutter project.
+A 3D raycaster implemented in Flutter.
 
-- Eldritch horror survival shooter
+![Gameplay 0](/captures/gameplay0_320x180.gif?raw=true)
+![Gameplay 1](/captures/gameplay1_320x180.gif?raw=true)
+![Gameplay 2](/captures/gameplay2_320x180.gif?raw=true)
+![Gameplay 3](/captures/gameplay3_320x180.gif?raw=true)
 
-## Getting Started
+## Description
 
-This project is a starting point for a Flutter application.
+This is a an implementation of the 3D raycasting algorithm as employed by games like Wolfenstein 3D. It uses the Canvas API, specifically `drawRawAtlas`, to render the level data and also to batch the draw calls.
 
-A few resources to get you started if this is your first Flutter project:
+On-screen controls have also been implemented using `PointerData`, with _inflated_ tap areas to improve responsiveness.
 
-- [Lab: Write your first Flutter app](https://flutter.io/docs/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://flutter.io/docs/cookbook)
+## Running the app
 
-For help getting started with Flutter, view our
-[online documentation](https://flutter.io/docs), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+I highly recommend running this on Android devices since that is where I have been testing the app on.
+
+Theoretically, it should also run on iOS since there is no platform specific code or configuration employed.
