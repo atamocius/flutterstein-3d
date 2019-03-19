@@ -6,9 +6,7 @@ import 'dart:typed_data';
 import 'package:flutter/services.dart';
 import 'package:vector_math/vector_math.dart';
 
-var w = window;
-var rb = rootBundle;
-var vz = Vector2.zero(), c0 = 0xff000000;
+var w = window, rb = rootBundle, vz = Vector2.zero(), c0 = 0xff000000;
 typedef bool P(int btn);
 
 num fr(num v) => v - v.floor();
@@ -30,15 +28,15 @@ Future<Image> li(String k) async {
   return c.future;
 }
 
-Future<Level> ll(String k) async {
+Future<L> ll(String k) async {
   var d = jsonDecode(await rb.loadString(k));
-  return Level(it(d['m']), d['ms'], await li(d['i']), d['is'], v(dt(d['p'])),
+  return L(it(d['m']), d['ms'], await li(d['i']), d['is'], v(dt(d['p'])),
       v(dt(d['d'])), it(d['c']), it(d['f']));
 }
 
-Future<Buttons> lb(String k, double r, double s, Rect b, Image i) async {
+Future<B> lb(String k, double r, double s, Rect b, Image i) async {
   var d = jsonDecode(await rb.loadString(k));
-  return Buttons(
+  return B(
       r,
       (d['t'] as List)
           .map((t) => RSTransform.fromComponents(
@@ -72,18 +70,18 @@ List<Rect> rt(List l) =>
 
 Vector2 v(v) => Vector2(v[0], v[1]);
 
-class Level {
+class L {
   Image i;
   int s, a;
   Vector2 p, d;
   List<int> m, c, f;
 
-  Level(this.m, this.s, this.i, this.a, this.p, this.d, this.c, this.f);
+  L(this.m, this.s, this.i, this.a, this.p, this.d, this.c, this.f);
 
   int get(num x, num y) => m[(s - y.floor() - 1) * s + x.floor()];
 }
 
-class Buttons {
+class B {
   double r;
   List<RSTransform> t;
   List<Rect> u, d, e;
@@ -94,7 +92,7 @@ class Buttons {
   Paint p;
   int s;
 
-  Buttons(this.r, this.t, this.u, this.d, this.m, this.o, this.a, this.i)
+  B(this.r, this.t, this.u, this.d, this.m, this.o, this.a, this.i)
       : s = 0,
         e = List<Rect>.from(u),
         p = Paint();
@@ -107,7 +105,7 @@ class Buttons {
 
   ud(List<PointerData> p) {
     s = 0;
-    for (final d in p)
+    for (var d in p)
       if (d.change == PointerChange.up)
         s = 0;
       else {
@@ -120,8 +118,8 @@ class Buttons {
   }
 }
 
-class Raycaster {
-  Level _l;
+class R {
+  L _l;
   Size _s;
   Vector2 p, d, pn;
   Image _i;
@@ -138,7 +136,7 @@ class Raycaster {
       _sp = Paint(),
       _se = 4;
 
-  Raycaster(this._s, this._l)
+  R(this._s, this._l)
       : p = _l.p.clone(),
         d = _l.d.clone(),
         _i = _l.i,
@@ -246,9 +244,9 @@ class Raycaster {
   }
 }
 
-class Game {
-  Raycaster _r;
-  Level _l;
+class G {
+  R _r;
+  L _l;
   var _rm = Matrix2.identity(),
       _mv = Vector2.zero(),
       _s = 3.0,
@@ -257,7 +255,7 @@ class Game {
 
   double _bt = 0.0, _bf = 10, _ba = 2;
 
-  Game(Size s, this._l) : _r = Raycaster(s, _l);
+  G(Size s, this._l) : _r = R(s, _l);
 
   u(double t, P b) {
     var fw = b(0),
@@ -303,7 +301,7 @@ class Game {
     c.restore();
   }
 
-  _tl(Level l, Vector2 p, Vector2 d, double w) {
+  _tl(L l, Vector2 p, Vector2 d, double w) {
     if (l.get(p.x + d.x, p.y) == 0) p.x += d.x;
     if (l.get(p.x, p.y + d.y) == 0) p.y += d.y;
 
@@ -324,8 +322,6 @@ class Game {
 
 main() async {
   await SystemChrome.setEnabledSystemUIOverlays([]);
-  await SystemChrome.setPreferredOrientations(
-      [DeviceOrientation.landscapeLeft, DeviceOrientation.landscapeRight]);
 
   var vs = Size(640, 360),
       b = Offset.zero & vs,
@@ -333,7 +329,7 @@ main() async {
       ba = await li('img/gui.png');
 
   Offset o;
-  Buttons bs;
+  B bs;
 
   var hmc = () async {
     var sz = w.physicalSize, r = sz.shortestSide / vs.shortestSide;
@@ -354,7 +350,7 @@ main() async {
   w.onMetricsChanged = hmc;
 
   var lvl = await ll('data/level.json'),
-      g = Game(vs, lvl),
+      g = G(vs, lvl),
       z = Duration.zero,
       pv = z;
 
