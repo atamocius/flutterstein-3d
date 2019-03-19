@@ -13,10 +13,6 @@ class Buttons {
   final Paint _paint;
   int _state;
 
-  // final _debugPaint = Paint()
-  //   ..color = Color(0xFFFFF1E8)
-  //   ..style = PaintingStyle.stroke;
-
   Buttons(
     this._pixelRatio,
     this._transforms,
@@ -40,11 +36,6 @@ class Buttons {
       null,
       _paint,
     );
-
-    // Draw button hit areas
-    // for (int i = 0; i < _areas.length; i++) {
-    //   canvas.drawRRect(_areas[i], _debugPaint);
-    // }
   }
 
   bool pressed(int btn) => _state & _masks[btn] > 0;
@@ -53,19 +44,14 @@ class Buttons {
     _state = 0;
     for (final d in data)
       if (d.change == PointerChange.up)
-        // Throw away the previously set bits since we can't determine for which
-        // button the "up" action is for (the player might have moved their finger
-        // outside of the button or to a different button)
         _state = 0;
       else {
-        // Update the button state
         for (int i = 0; i < _areas.length; i++)
           if (_areas[i].contains(
               Offset(d.physicalX / _pixelRatio, d.physicalY / _pixelRatio)))
             _state |= 1 << i;
       }
 
-    // Update rects
     for (int i = 0; i < _rects.length; i++)
       _rects[i] = _state & _masks[i] > 0 ? _dnRects[i] : _upRects[i];
   }

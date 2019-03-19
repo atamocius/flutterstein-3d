@@ -33,7 +33,6 @@ Future<Level> loadLevel(String key) async {
     d['mapSize'],
     await loadImage(d['atlas']),
     d['atlasSize'],
-    // origin the bottom-left of the map array
     vec(dlst(d['pos'])),
     vec(dlst(d['dir'])),
     ilst(d['ceil']),

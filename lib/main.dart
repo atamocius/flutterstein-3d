@@ -55,9 +55,6 @@ main() async {
     prev = now;
     final t = delta.inMicroseconds / 1000000;
 
-    // FPS counter
-    // print(1.0 / t);
-
     canvas.save();
     canvas.translate(offset.dx, offset.dy);
     canvas.clipRect(bounds);
@@ -65,7 +62,6 @@ main() async {
     game.render(canvas);
     canvas.restore();
 
-    // Draw buttons
     btns.render(canvas);
 
     final picture = recorder.endRecording();
