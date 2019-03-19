@@ -14,15 +14,15 @@ var w=window,
     jdc=jsonDecode,
     oz=Offset.zero;
 typedef bool P(int btn);
-fl(v)=>v.floor();
-fr(v)=>v-fl(v);
+k(v)=>v.floor();
+fr(v)=>v-k(v);
 iA(v)=>(1/v).abs();
 sq(v)=>v*v;
-co(b,s,p)=>(fl(b*s)&0xff)<<p;
+co(b,s,p)=>(k(b*s)&0xff)<<p;
 gs(s,[b=255])=>(c0|co(b,s,16)|co(b,s,8)|co(b,s,0))&cf;
 it(d)=>d.cast<int>();
 dt(d)=>d.cast<double>();
-f32(v)=>Float32List(v);
+f3(v)=>Float32List(v);
 
 li(k)async{
   var c=Completer<Image>();
@@ -63,7 +63,7 @@ class L{
 
   L(this.m,this.s,this.i,this.a,this.p,this.d,this.c,this.f);
 
-  g(x,y)=>m[(s-fl(y)-1)*s+fl(x)];
+  g(x,y)=>m[(s-k(y)-1)*s+k(x)];
 }
 
 class B{
@@ -97,136 +97,136 @@ class B{
 }
 
 class R{
-  L _l;
-  Size _s;
+  L l;
+  Size z;
   Vector2 p,d,pn;
-  Image _i;
-  int _is;
-  Float32List _st,_sr;
-  Int32List _sc;
-  Rect _br;
-  Paint _bp;
+  Image m;
+  int s;
+  Float32List t,g;
+  Int32List cs;
+  Rect br;
+  Paint bp;
   var tW=32,
-      _hw=0.85,
-      _sd=vz.clone(),
-      _dd=vz.clone(),
-      _rd=vz.clone(),
-      _sp=Paint(),
-      _se=4;
+      hw=.85,
+      _d=vz.clone(),
+      dd=vz.clone(),
+      rd=vz.clone(),
+      sp=Paint(),
+      se=4;
 
-  R(this._s,this._l)
-     :p=_l.p.clone(),
-        d=_l.d.clone(),
-        _i=_l.i,
-        _is=_l.a,
-        _br=Rect.fromLTRB(0,-20,_s.width,_s.height+20),
-        _bp=Paint()
+  R(this.z,this.l)
+     :p=l.p.clone(),
+        d=l.d.clone(),
+        m=l.i,
+        s=l.a,
+        br=Rect.fromLTRB(0,-20,z.width,z.height+20),
+        bp=Paint()
           ..shader=Gradient.linear(
             oz,
-            Offset(0,_s.height),
-            [_l.c[0],_l.c[1],c0,c0,_l.f[1],_l.f[0]]
+            Offset(0,z.height),
+            [l.c[0],l.c[1],c0,c0,l.f[1],l.f[0]]
                 .map((c)=>Color(c))
                 .toList(),
-            [0,0.35,0.45,0.55,0.65,1],
+            [0,.35,.45,.55,.65,1],
           ){
     pn=Vector2(d.y,-d.x)
       ..normalize()
-      ..scale(_hw);
+      ..scale(hw);
 
-    var w=_s.width~/1,s=_se;
-    _st=f32(w*s);
-    _sr=f32(w*s);
-    _sc=Int32List(w);
+    var w=z.width~/1,s=se;
+    t=f3(w*s);
+    g=f3(w*s);
+    cs=Int32List(w);
   }
 
   r(Canvas c){
-    for(int x=0;x<_s.width;x++)_rc(x);
-    c.drawRect(_br,_bp);
-    c.drawRawAtlas(_i,_st,_sr,_sc,BlendMode.modulate,null,_sp);
+    for(int x=0;x<z.width;x++)_r(x);
+    c.drawRect(br,bp);
+    c.drawRawAtlas(m,t,g,cs,BlendMode.modulate,null,sp);
   }
 
-  _rc(x){
-    var w=_s.width,h=_s.height,cX=2*x/w-1;
+  _r(x){
+    var w=z.width,h=z.height,cX=2*x/w-1;
 
-    _rd
+    rd
       ..setZero()
       ..addScaled(pn,cX)
       ..add(d);
 
-    int mX=fl(p.x),mY=fl(p.y),sX=0,sY=0,ht=0,sd;
+    int mX=k(p.x),mY=k(p.y),sX=0,sY=0,ht=0,sd;
 
-    _dd.x=iA(_rd.x);
-    _dd.y=iA(_rd.y);
+    dd.x=iA(rd.x);
+    dd.y=iA(rd.y);
 
-    if(_rd.x<0){
+    if(rd.x<0){
       sX=-1;
-      _sd.x=(p.x-mX)*_dd.x;
+      _d.x=(p.x-mX)*dd.x;
     }else{
       sX=1;
-      _sd.x=(mX+1.0-p.x)*_dd.x;
+      _d.x=(mX+1.0-p.x)*dd.x;
     }
-    if(_rd.y<0){
+    if(rd.y<0){
       sY=-1;
-      _sd.y=(p.y-mY)*_dd.y;
+      _d.y=(p.y-mY)*dd.y;
     }else{
       sY=1;
-      _sd.y=(mY+1.0-p.y)*_dd.y;
+      _d.y=(mY+1.0-p.y)*dd.y;
     }
 
     while(ht==0){
-      if(_sd.x<_sd.y){
-        _sd.x+=_dd.x;
+      if(_d.x<_d.y){
+        _d.x+=dd.x;
         mX+=sX;
         sd=0;
       }else{
-        _sd.y+=_dd.y;
+        _d.y+=dd.y;
         mY+=sY;
         sd=1;
       }
 
-      if(_l.g(mX,mY)>0)ht=1;
+      if(l.g(mX,mY)>0)ht=1;
     }
 
     var dx=mX-p.x,
         dy=mY-p.y,
-        pwd=sd==0?(dx+(1-sX)/2)/_rd.x:(dy+(1-sY)/2)/_rd.y,
+        pwd=sd==0?(dx+(1-sX)/2)/rd.x:(dy+(1-sY)/2)/rd.y,
         lh=h/pwd,
-        wX=sd==0?p.y+pwd*_rd.y:p.x+pwd*_rd.x;
+        wX=sd==0?p.y+pwd*rd.y:p.x+pwd*rd.x;
     wX=fr(wX);
 
-    int tX=fl(wX*tW);
-    if(sd==0&&_rd.x>0)tX=tW-tX-1;
-    if(sd==1&&_rd.y<0)tX=tW-tX-1;
+    int tX=k(wX*tW);
+    if(sd==0&&rd.x>0)tX=tW-tX-1;
+    if(sd==1&&rd.y<0)tX=tW-tX-1;
 
-    var tn=_l.g(mX,mY)-1,
-        oX=tn % _is*tW/1,
-        oY=tn~/_is*tW/1,
-        i=x*_se,
+    var tn=l.g(mX,mY)-1,
+        oX=tn % s*tW/1,
+        oY=tn~/s*tW/1,
+        i=x*se,
         sc=lh/tW,
         ds=-lh/2+h/2;
 
-    _st
+    t
       ..[i]=sc
       ..[i+1]=0
       ..[i+2]=x/1
       ..[i+3]=ds;
-    _sr
+    g
       ..[i]=oX+tX
       ..[i+1]=oY
       ..[i+2]=oX+tX+1/sc
       ..[i+3]=oY+tW;
 
     var q=sq(dx)+sq(dy),att=1-min(sq(q/100),1);
-    _sc[x]=gs(att,sd==1?255:200);
+    cs[x]=gs(att,sd==1?255:200);
   }
 }
 
 class G{
   R _r;
   L _l;
-  var _rm=Matrix2.identity(),_mv=vz.clone(),_s=3.0,_rs=1.7,_w=0.2;
+  var _rm=Matrix2.identity(),_mv=vz.clone(),_s=3.0,_rs=1.7,_w=.2;
 
-  num _bt=0.0,_bf=10,_ba=2;
+  num _bt=.0,_bf=10,_ba=2;
 
   G(Size s,this._l):_r=R(s,_l);
 
@@ -313,7 +313,7 @@ main()async{
       ..[10]=1
       ..[15]=1;
 
-    o=(sz/r-vs as Offset)*0.5;
+    o=(sz/r-vs as Offset)*.5;
 
     bs=await lb('d/b.json',r,1/r*w.devicePixelRatio,oz & sz/r,ba);
   };
