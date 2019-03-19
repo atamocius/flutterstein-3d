@@ -35,7 +35,7 @@ li(k) async {
 
 ll(k) async {
   var d = jdc(await rb.loadString(k));
-  return L(it(d['m']), d['ms'], await li(d['i']), d['is'], v(dt(d['p'])),
+  return L(it(d['m']), d['s'], await li(d['i']), d['t'], v(dt(d['p'])),
       v(dt(d['d'])), it(d['c']), it(d['f']));
 }
 
@@ -53,8 +53,8 @@ lb(k, r, s, b, i) async {
                 translateY: t[2] * b.height + t[4] * s,
               ))
           .toList(),
-      rt(d['ur']),
-      rt(d['dr']),
+      rt(d['u']),
+      rt(d['d']),
       it(d['m']),
       (d['a'] as List)
           .map((a) => RRect.fromRectAndRadius(
