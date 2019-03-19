@@ -31,7 +31,7 @@ class Raycaster {
       : p = _l.p.clone(),
         d = _l.d.clone(),
         _i = _l.i,
-        _is = _l.ats,
+        _is = _l.a,
         _br = Rect.fromLTRB(0, -20, _s.width, _s.height + 20),
         _bp = Paint()
           ..shader = Gradient.linear(

@@ -31,13 +31,8 @@ main() async {
 
     o = (sz / r - vs as Offset) * 0.5;
 
-    bs = await lb(
-      'data/buttons.json',
-      r,
-      1 / r * w.devicePixelRatio,
-      Offset.zero & sz / r,
-      ba,
-    );
+    bs = await lb('data/buttons.json', r, 1 / r * w.devicePixelRatio,
+        Offset.zero & sz / r, ba);
   };
 
   hmc();
@@ -49,15 +44,19 @@ main() async {
       pv = z;
 
   w.onBeginFrame = (n) {
-    var r = PictureRecorder(), c = Canvas(r, b), d = pv == z ? z : n - pv;
+    var r = PictureRecorder(),
+        c = Canvas(r, b),
+        d = pv == z ? z : n - pv,
+        t = d.inMicroseconds / 1000000;
     pv = n;
-    var t = d.inMicroseconds / 1000000;
 
-    c.save();
-    c.translate(o.dx, o.dy);
-    c.clipRect(b);
-    g.update(t, bs.pressed);
-    g.render(c);
+    c
+      ..save()
+      ..translate(o.dx, o.dy)
+      ..clipRect(b);
+    g
+      ..update(t, bs.b)
+      ..render(c);
     c.restore();
 
     bs.render(c);
