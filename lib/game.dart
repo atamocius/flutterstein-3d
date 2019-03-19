@@ -21,7 +21,7 @@ class Game {
 
   Game(Size s, this._l) : _r = Raycaster(s, _l);
 
-  update(double t, Pressed b) {
+  update(double t, P b) {
     var fw = b(0), bw = b(2), sL = b(1), sR = b(3), rL = b(4), rR = b(5);
 
     var m = _s * t, r = _rs * t, d = _r.d, p = _r.p, pn = _r.pn;
@@ -59,8 +59,8 @@ class Game {
     if (l.get(p.x + d.x, p.y) == 0) p.x += d.x;
     if (l.get(p.x, p.y + d.y) == 0) p.y += d.y;
 
-    var fX = frac(p.x);
-    var fY = frac(p.y);
+    var fX = fr(p.x);
+    var fY = fr(p.y);
 
     if (d.x < 0) {
       if (l.get(p.x - 1, p.y) > 0 && fX < w) p.x += w - fX;

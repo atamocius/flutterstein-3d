@@ -74,8 +74,8 @@ class Raycaster {
 
     int mX = p.x.floor(), mY = p.y.floor();
 
-    _dd.x = invAbs(_rd.x);
-    _dd.y = invAbs(_rd.y);
+    _dd.x = iA(_rd.x);
+    _dd.y = iA(_rd.y);
 
     int sX = 0, sY = 0;
 
@@ -118,7 +118,7 @@ class Raycaster {
     var lh = h / pwd;
 
     var wX = sd == 0 ? p.y + pwd * _rd.y : p.x + pwd * _rd.x;
-    wX = frac(wX);
+    wX = fr(wX);
 
     int tX = (wX * tW).floor();
     if (sd == 0 && _rd.x > 0) tX = tW - tX - 1;

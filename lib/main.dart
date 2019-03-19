@@ -5,6 +5,8 @@ import 'utils.dart';
 import 'game.dart';
 import 'buttons.dart';
 
+var w = window;
+
 main() async {
   await SystemChrome.setEnabledSystemUIOverlays([]);
   await SystemChrome.setPreferredOrientations(
@@ -13,13 +15,13 @@ main() async {
   var vs = Size(640, 360),
       b = Offset.zero & vs,
       dt = Float64List(16),
-      ba = await loadImage('img/gui.png');
+      ba = await li('img/gui.png');
 
   Offset o;
   Buttons bs;
 
   var hmc = () async {
-    var sz = window.physicalSize, r = sz.shortestSide / vs.shortestSide;
+    var sz = w.physicalSize, r = sz.shortestSide / vs.shortestSide;
 
     dt
       ..[0] = r
@@ -29,24 +31,24 @@ main() async {
 
     o = (sz / r - vs as Offset) * 0.5;
 
-    bs = await loadButtons(
+    bs = await lb(
       'data/buttons.json',
       r,
-      1 / r * window.devicePixelRatio,
+      1 / r * w.devicePixelRatio,
       Offset.zero & sz / r,
       ba,
     );
   };
 
   hmc();
-  window.onMetricsChanged = hmc;
+  w.onMetricsChanged = hmc;
 
-  var lvl = await loadLevel('data/level.json'),
+  var lvl = await ll('data/level.json'),
       g = Game(vs, lvl),
       z = Duration.zero,
       pv = z;
 
-  window.onBeginFrame = (n) {
+  w.onBeginFrame = (n) {
     var r = PictureRecorder(), c = Canvas(r, b), d = pv == z ? z : n - pv;
     pv = n;
     var t = d.inMicroseconds / 1000000;
@@ -66,12 +68,12 @@ main() async {
           ..addPicture(Offset.zero, p)
           ..pop();
 
-    window
+    w
       ..render(br.build())
       ..scheduleFrame();
   };
 
-  window
+  w
     ..scheduleFrame()
     ..onPointerDataPacket = (p) => bs.update(p.data);
 }

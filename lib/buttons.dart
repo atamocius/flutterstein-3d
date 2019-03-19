@@ -1,6 +1,6 @@
 import 'dart:ui';
 
-typedef bool Pressed(int btn);
+typedef bool P(int btn);
 
 class Buttons {
   double _pr;
