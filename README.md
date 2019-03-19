@@ -13,7 +13,7 @@ This is a an implementation of the 3D raycasting algorithm as employed by games 
 
 On-screen controls have also been implemented using `PointerData`, with _inflated_ tap areas to improve responsiveness.
 
-> ## To keep things interesting
+> ### To keep things interesting
 >
 > Due to the 5KB restriction, I can't really add any game logic. However, when I built the level, I hid 9 other Flutter logos (10 if you count the first logo at the start) within the level, see if you can find them all before reaching the exit (the exit is another _elevator_).
 >
@@ -24,3 +24,7 @@ On-screen controls have also been implemented using `PointerData`, with _inflate
 I highly recommend running this on Android devices since that is where I have been testing the app on.
 
 Theoretically, it should also run on iOS since there is no platform specific code or configuration employed.
+
+> ### Orientation
+>
+> Although the app supports both _portrait_ and _landscape_ orientation, it looks way better in _landscape_.
