@@ -5,160 +5,144 @@ import 'package:vector_math/vector_math.dart';
 import 'utils.dart';
 import 'level.dart';
 
-var texW = 32, texH = 32;
+var tW = 32, tH = 32;
 
 class Raycaster {
-  Level _lvl;
-  Size _screen;
-  Vector2 pos;
-  Vector2 dir;
-  Vector2 plane;
-  var _planeHalfW = 0.85;
-  var _sideDist = Vector2.zero();
-  var _deltaDist = Vector2.zero();
-  var _rayDir = Vector2.zero();
-  Image _atlas;
-  int _atlasSize;
-  Float32List _sliverTransforms;
-  Float32List _sliverRects;
-  Int32List _sliverColors;
-  var _sliverPaint = Paint();
-  var _stride = 4;
-  Rect _bgRect;
-  Paint _bgPaint;
+  Level _l;
+  Size _s;
+  Vector2 p;
+  Vector2 d;
+  Vector2 pn;
+  var _pnhw = 0.85;
+  var _sd = Vector2.zero();
+  var _dd = Vector2.zero();
+  var _rd = Vector2.zero();
+  Image _i;
+  int _is;
+  Float32List _st;
+  Float32List _sr;
+  Int32List _sc;
+  var _sp = Paint();
+  var _se = 4;
+  Rect _br;
+  Paint _bp;
 
-  Raycaster(this._screen, this._lvl)
-      : pos = _lvl.pos.clone(),
-        dir = _lvl.dir.clone(),
-        _atlas = _lvl.atlas,
-        _atlasSize = _lvl.atlasSize,
-        _bgRect = Rect.fromLTRB(0, -20, _screen.width, _screen.height + 20),
-        _bgPaint = Paint()
+  Raycaster(this._s, this._l)
+      : p = _l.p.clone(),
+        d = _l.d.clone(),
+        _i = _l.i,
+        _is = _l.ats,
+        _br = Rect.fromLTRB(0, -20, _s.width, _s.height + 20),
+        _bp = Paint()
           ..shader = Gradient.linear(
             Offset.zero,
-            Offset(0, _screen.height),
+            Offset(0, _s.height),
             [
-              _lvl.ceil[0],
-              _lvl.ceil[1],
+              _l.c[0],
+              _l.c[1],
               0xff000000,
               0xff000000,
-              _lvl.floor[1],
-              _lvl.floor[0],
+              _l.f[1],
+              _l.f[0],
             ].map((c) => Color(c)).toList(),
             [0, 0.35, 0.45, 0.55, 0.65, 1],
           ) {
-    plane = Vector2(dir.y, -dir.x)
+    pn = Vector2(d.y, -d.x)
       ..normalize()
-      ..scale(_planeHalfW);
+      ..scale(_pnhw);
 
-    final w = _screen.width ~/ 1, s = _stride;
-    _sliverTransforms = Float32List(w * s);
-    _sliverRects = Float32List(w * s);
-    _sliverColors = Int32List(w);
+    var w = _s.width ~/ 1, s = _se;
+    _st = Float32List(w * s);
+    _sr = Float32List(w * s);
+    _sc = Int32List(w);
   }
 
   render(Canvas c) {
-    for (int x = 0; x < _screen.width; x++) _raycast(x);
-
-    c.drawRect(_bgRect, _bgPaint);
-
-    c.drawRawAtlas(
-      _atlas,
-      _sliverTransforms,
-      _sliverRects,
-      _sliverColors,
-      BlendMode.modulate,
-      null,
-      _sliverPaint,
-    );
+    for (int x = 0; x < _s.width; x++) _raycast(x);
+    c.drawRect(_br, _bp);
+    c.drawRawAtlas(_i, _st, _sr, _sc, BlendMode.modulate, null, _sp);
   }
 
   _raycast(int x) {
-    var w = _screen.width, h = _screen.height;
-    var cameraX = 2 * x / w - 1;
+    var w = _s.width, h = _s.height;
+    var cX = 2 * x / w - 1;
 
-    _rayDir.setZero();
-    _rayDir
-      ..addScaled(plane, cameraX)
-      ..add(dir);
+    _rd.setZero();
+    _rd
+      ..addScaled(pn, cX)
+      ..add(d);
 
-    int mapX = pos.x.floor(), mapY = pos.y.floor();
+    int mX = p.x.floor(), mY = p.y.floor();
 
-    _deltaDist.x = invAbs(_rayDir.x);
-    _deltaDist.y = invAbs(_rayDir.y);
+    _dd.x = invAbs(_rd.x);
+    _dd.y = invAbs(_rd.y);
 
-    int stepX = 0, stepY = 0;
+    int sX = 0, sY = 0;
 
-    if (_rayDir.x < 0) {
-      stepX = -1;
-      _sideDist.x = (pos.x - mapX) * _deltaDist.x;
+    if (_rd.x < 0) {
+      sX = -1;
+      _sd.x = (p.x - mX) * _dd.x;
     } else {
-      stepX = 1;
-      _sideDist.x = (mapX + 1.0 - pos.x) * _deltaDist.x;
+      sX = 1;
+      _sd.x = (mX + 1.0 - p.x) * _dd.x;
     }
-    if (_rayDir.y < 0) {
-      stepY = -1;
-      _sideDist.y = (pos.y - mapY) * _deltaDist.y;
+    if (_rd.y < 0) {
+      sY = -1;
+      _sd.y = (p.y - mY) * _dd.y;
     } else {
-      stepY = 1;
-      _sideDist.y = (mapY + 1.0 - pos.y) * _deltaDist.y;
+      sY = 1;
+      _sd.y = (mY + 1.0 - p.y) * _dd.y;
     }
 
-    int hit = 0, side;
+    int ht = 0, sd;
 
-    while (hit == 0) {
-      if (_sideDist.x < _sideDist.y) {
-        _sideDist.x += _deltaDist.x;
-        mapX += stepX;
-        side = 0;
+    while (ht == 0) {
+      if (_sd.x < _sd.y) {
+        _sd.x += _dd.x;
+        mX += sX;
+        sd = 0;
       } else {
-        _sideDist.y += _deltaDist.y;
-        mapY += stepY;
-        side = 1;
+        _sd.y += _dd.y;
+        mY += sY;
+        sd = 1;
       }
 
-      if (_lvl.get(mapX, mapY) > 0) hit = 1;
+      if (_l.get(mX, mY) > 0) ht = 1;
     }
 
-    var dx = mapX - pos.x;
-    var dy = mapY - pos.y;
+    var dx = mX - p.x, dy = mY - p.y;
 
-    var perpWallDist = side == 0
-        ? (dx + (1 - stepX) / 2) / _rayDir.x
-        : (dy + (1 - stepY) / 2) / _rayDir.y;
+    var pwd =
+        sd == 0 ? (dx + (1 - sX) / 2) / _rd.x : (dy + (1 - sY) / 2) / _rd.y;
 
-    var lineHeight = h / perpWallDist;
+    var lh = h / pwd;
 
-    var wallX = side == 0
-        ? pos.y + perpWallDist * _rayDir.y
-        : pos.x + perpWallDist * _rayDir.x;
-    wallX = frac(wallX);
+    var wX = sd == 0 ? p.y + pwd * _rd.y : p.x + pwd * _rd.x;
+    wX = frac(wX);
 
-    int texX = (wallX * texW).floor();
-    if (side == 0 && _rayDir.x > 0) texX = texW - texX - 1;
-    if (side == 1 && _rayDir.y < 0) texX = texW - texX - 1;
+    int tX = (wX * tW).floor();
+    if (sd == 0 && _rd.x > 0) tX = tW - tX - 1;
+    if (sd == 1 && _rd.y < 0) tX = tW - tX - 1;
 
-    var texNum = _lvl.get(mapX, mapY) - 1,
-        oX = texNum % _atlasSize * texW / 1,
-        oY = texNum ~/ _atlasSize * texH / 1;
+    var tn = _l.get(mX, mY) - 1,
+        oX = tn % _is * tW / 1,
+        oY = tn ~/ _is * tH / 1;
 
-    var i = x * _stride,
-        scale = lineHeight / texH,
-        drawStart = -lineHeight / 2 + h / 2;
+    var i = x * _se, sc = lh / tH, ds = -lh / 2 + h / 2;
 
-    _sliverTransforms
-      ..[i + 0] = scale
+    _st
+      ..[i + 0] = sc
       ..[i + 1] = 0
       ..[i + 2] = x / 1
-      ..[i + 3] = drawStart;
-    _sliverRects
-      ..[i + 0] = oX + texX
+      ..[i + 3] = ds;
+    _sr
+      ..[i + 0] = oX + tX
       ..[i + 1] = oY
-      ..[i + 2] = oX + texX + 1 / scale
-      ..[i + 3] = oY + texH;
+      ..[i + 2] = oX + tX + 1 / sc
+      ..[i + 3] = oY + tH;
 
     var distSq = sq(dx) + sq(dy);
     var att = 1 - min(sq(distSq / 100), 1);
-    _sliverColors[x] = greyscale(att, side == 1 ? 255 : 200);
+    _sc[x] = gs(att, sd == 1 ? 255 : 200);
   }
 }

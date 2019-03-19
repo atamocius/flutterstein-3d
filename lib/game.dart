@@ -7,61 +7,52 @@ import 'level.dart';
 import 'buttons.dart';
 
 class Game {
-  Raycaster _rc;
-  Level _lvl;
-  var _rotMat = Matrix2.identity(),
-      _moveVec = Vector2.zero(),
-      _moveSpeed = 3.0,
-      _rotSpeed = 1.7,
-      _wallPadding = 0.2;
+  Raycaster _r;
+  Level _l;
+  var _rm = Matrix2.identity(),
+      _mv = Vector2.zero(),
+      _s = 3.0,
+      _rs = 1.7,
+      _w = 0.2;
 
-  double _bobTime = 0.0;
-  double _bobFreq = 10;
-  double _bobAmp = 2;
+  double _bt = 0.0;
+  double _bf = 10;
+  double _ba = 2;
 
-  Game(Size screen, this._lvl) : _rc = Raycaster(screen, _lvl);
+  Game(Size s, this._l) : _r = Raycaster(s, _l);
 
-  void update(double t, Pressed b) {
-    var fwd = b(0),
-        bwd = b(2),
-        stfL = b(1),
-        stfR = b(3),
-        rotL = b(4),
-        rotR = b(5);
+  update(double t, Pressed b) {
+    var fw = b(0), bw = b(2), sL = b(1), sR = b(3), rL = b(4), rR = b(5);
 
-    var move = _moveSpeed * t,
-        rot = _rotSpeed * t,
-        dir = _rc.dir,
-        pos = _rc.pos,
-        plane = _rc.plane;
+    var m = _s * t, r = _rs * t, d = _r.d, p = _r.p, pn = _r.pn;
 
-    if (fwd || bwd) {
-      _moveVec.x = dir.x * move * (fwd ? 1 : -1);
-      _moveVec.y = dir.y * move * (fwd ? 1 : -1);
+    if (fw || bw) {
+      _mv.x = d.x * m * (fw ? 1 : -1);
+      _mv.y = d.y * m * (fw ? 1 : -1);
     }
 
-    if (stfL || stfR) {
-      _moveVec.x = dir.y * move * (stfL ? 1 : -1);
-      _moveVec.y = -dir.x * move * (stfL ? 1 : -1);
+    if (sL || sR) {
+      _mv.x = d.y * m * (sL ? 1 : -1);
+      _mv.y = -d.x * m * (sL ? 1 : -1);
     }
 
-    if (fwd || bwd || stfL || stfR) {
-      _bobTime += t * _bobFreq;
-      _translate(_lvl, pos, _moveVec, _wallPadding);
+    if (fw || bw || sL || sR) {
+      _bt += t * _bf;
+      _translate(_l, p, _mv, _w);
     }
 
-    if (rotL || rotR) {
-      _rotMat.setRotation(rot * (rotL ? 1 : -1));
-      _rotMat.transform(dir);
-      _rotMat.transform(plane);
+    if (rL || rR) {
+      _rm.setRotation(r * (rL ? 1 : -1));
+      _rm.transform(d);
+      _rm.transform(pn);
     }
   }
 
-  render(Canvas canvas) {
-    canvas.save();
-    canvas.translate(0, sin((pi / 2) * _bobTime) * _bobAmp);
-    _rc.render(canvas);
-    canvas.restore();
+  render(Canvas c) {
+    c.save();
+    c.translate(0, sin((pi / 2) * _bt) * _ba);
+    _r.render(c);
+    c.restore();
   }
 
   _translate(Level l, Vector2 p, Vector2 d, double w) {

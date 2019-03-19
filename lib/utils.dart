@@ -12,16 +12,16 @@ double invAbs(double v) => (1 / v).abs();
 num sq(num v) => v * v;
 int col(b, s, p) => (((b * s).floor() & 0xff) << p);
 
-int greyscale(num s, [int b = 255]) =>
+int gs(num s, [int b = 255]) =>
     (0xff000000 | col(b, s, 16) | col(b, s, 8) | col(b, s, 0)) & 0xFFFFFFFF;
 
 ilst(d) => d.cast<int>();
 dlst(d) => d.cast<double>();
 
 Future<Image> loadImage(String k) async {
-  final d = await rootBundle.load(k);
-  final b = Uint8List.view(d.buffer);
-  final c = Completer<Image>();
+  var d = await rootBundle.load(k);
+  var b = Uint8List.view(d.buffer);
+  var c = Completer<Image>();
   decodeImageFromList(b, (i) => c.complete(i));
   return c.future;
 }

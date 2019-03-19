@@ -10,72 +10,68 @@ main() async {
   await SystemChrome.setPreferredOrientations(
       [DeviceOrientation.landscapeLeft, DeviceOrientation.landscapeRight]);
 
-  var viewSize = Size(640, 360);
-  var bounds = Offset.zero & viewSize;
+  var vs = Size(640, 360),
+      b = Offset.zero & vs,
+      dt = Float64List(16),
+      ba = await loadImage('img/gui.png');
 
-  var deviceTransform = Float64List(16);
-  Offset offset;
-  Buttons btns;
-  var btnAtlas = await loadImage('img/gui.png');
+  Offset o;
+  Buttons bs;
 
-  var handleMetricsChanged = () async {
-    var size = window.physicalSize,
-        pixelRatio = size.shortestSide / viewSize.shortestSide;
+  var hmc = () async {
+    var sz = window.physicalSize, r = sz.shortestSide / vs.shortestSide;
 
-    deviceTransform
-      ..[0] = pixelRatio
-      ..[5] = pixelRatio
+    dt
+      ..[0] = r
+      ..[5] = r
       ..[10] = 1
       ..[15] = 1;
 
-    offset = (size / pixelRatio - viewSize as Offset) * 0.5;
+    o = (sz / r - vs as Offset) * 0.5;
 
-    btns = await loadButtons(
+    bs = await loadButtons(
       'data/buttons.json',
-      pixelRatio,
-      1 / pixelRatio * window.devicePixelRatio,
-      Offset.zero & size / pixelRatio,
-      btnAtlas,
+      r,
+      1 / r * window.devicePixelRatio,
+      Offset.zero & sz / r,
+      ba,
     );
   };
 
-  handleMetricsChanged();
-  window.onMetricsChanged = handleMetricsChanged;
+  hmc();
+  window.onMetricsChanged = hmc;
 
-  var lvl = await loadLevel('data/level.json');
-  var g = Game(viewSize, lvl);
-  var zero = Duration.zero;
-  var prev = zero;
+  var lvl = await loadLevel('data/level.json'),
+      g = Game(vs, lvl),
+      z = Duration.zero,
+      pv = z;
 
-  window.onBeginFrame = (now) {
-    var recorder = PictureRecorder();
-    var c = Canvas(recorder, bounds);
-
-    var delta = prev == zero ? zero : now - prev;
-    prev = now;
-    var t = delta.inMicroseconds / 1000000;
+  window.onBeginFrame = (n) {
+    var r = PictureRecorder(), c = Canvas(r, b), d = pv == z ? z : n - pv;
+    pv = n;
+    var t = d.inMicroseconds / 1000000;
 
     c.save();
-    c.translate(offset.dx, offset.dy);
-    c.clipRect(bounds);
-    g.update(t, btns.pressed);
+    c.translate(o.dx, o.dy);
+    c.clipRect(b);
+    g.update(t, bs.pressed);
     g.render(c);
     c.restore();
 
-    btns.render(c);
+    bs.render(c);
 
-    var picture = recorder.endRecording();
-    var builder = SceneBuilder()
-      ..pushTransform(deviceTransform)
-      ..addPicture(Offset.zero, picture)
-      ..pop();
+    var p = r.endRecording(),
+        br = SceneBuilder()
+          ..pushTransform(dt)
+          ..addPicture(Offset.zero, p)
+          ..pop();
 
     window
-      ..render(builder.build())
+      ..render(br.build())
       ..scheduleFrame();
   };
 
   window
     ..scheduleFrame()
-    ..onPointerDataPacket = (p) => btns.update(p.data);
+    ..onPointerDataPacket = (p) => bs.update(p.data);
 }
