@@ -10,19 +10,21 @@ var w = window,
     rb = rootBundle,
     vz = Vector2.zero(),
     c0 = 0xff000000,
-    jdc = jsonDecode;
+    cf = 0xFFFFFFFF,
+    jdc = jsonDecode,
+    oz = Offset.zero;
 typedef bool P(int btn);
 
-fr(v) => v - v.floor();
+fl(v) => v.floor();
+fr(v) => v - fl(v);
 iA(v) => (1 / v).abs();
 sq(v) => v * v;
-co(b, s, p) => (((b * s).floor() & 0xff) << p);
-
-gs(s, [b = 255]) =>
-    (c0 | co(b, s, 16) | co(b, s, 8) | co(b, s, 0)) & 0xFFFFFFFF;
-
+co(b, s, p) => (fl(b * s) & 0xff) << p;
+gs(s, [b = 255]) => (c0 | co(b, s, 16) | co(b, s, 8) | co(b, s, 0)) & cf;
 it(d) => d.cast<int>();
 dt(d) => d.cast<double>();
+
+f32(v) => Float32List(v);
 
 li(k) async {
   var c = Completer<Image>();
@@ -54,7 +56,6 @@ lb(k, r, s, b, i) async {
       rt(d['ur']),
       rt(d['dr']),
       it(d['m']),
-      (d['c'] as List).map((c) => Color(c)).toList(),
       (d['a'] as List)
           .map((a) => RRect.fromRectAndRadius(
                 Rect.fromCircle(
@@ -80,7 +81,7 @@ class L {
 
   L(this.m, this.s, this.i, this.a, this.p, this.d, this.c, this.f);
 
-  g(x, y) => m[(s - y.floor() - 1) * s + x.floor()];
+  g(x, y) => m[(s - fl(y) - 1) * s + fl(x)];
 }
 
 class B {
@@ -88,13 +89,13 @@ class B {
   List<RSTransform> t;
   List<Rect> u, d, e;
   List<int> m;
-  List<Color> o;
+  var o = List.filled(6, Color(cf));
   List<RRect> a;
   Image i;
   Paint p;
   int s;
 
-  B(this.r, this.t, this.u, this.d, this.m, this.o, this.a, this.i)
+  B(this.r, this.t, this.u, this.d, this.m, this.a, this.i)
       : s = 0,
         e = List<Rect>.from(u),
         p = Paint();
@@ -146,7 +147,7 @@ class R {
         _br = Rect.fromLTRB(0, -20, _s.width, _s.height + 20),
         _bp = Paint()
           ..shader = Gradient.linear(
-            Offset.zero,
+            oz,
             Offset(0, _s.height),
             [_l.c[0], _l.c[1], c0, c0, _l.f[1], _l.f[0]]
                 .map((c) => Color(c))
@@ -158,8 +159,8 @@ class R {
       ..scale(_hw);
 
     var w = _s.width ~/ 1, s = _se;
-    _st = Float32List(w * s);
-    _sr = Float32List(w * s);
+    _st = f32(w * s);
+    _sr = f32(w * s);
     _sc = Int32List(w);
   }
 
@@ -177,7 +178,7 @@ class R {
       ..addScaled(pn, cX)
       ..add(d);
 
-    int mX = p.x.floor(), mY = p.y.floor(), sX = 0, sY = 0, ht = 0, sd;
+    int mX = fl(p.x), mY = fl(p.y), sX = 0, sY = 0, ht = 0, sd;
 
     _dd.x = iA(_rd.x);
     _dd.y = iA(_rd.y);
@@ -219,7 +220,7 @@ class R {
         wX = sd == 0 ? p.y + pwd * _rd.y : p.x + pwd * _rd.x;
     wX = fr(wX);
 
-    int tX = (wX * tW).floor();
+    int tX = fl(wX * tW);
     if (sd == 0 && _rd.x > 0) tX = tW - tX - 1;
     if (sd == 1 && _rd.y < 0) tX = tW - tX - 1;
 
@@ -241,7 +242,7 @@ class R {
       ..[i + 2] = oX + tX + 1 / sc
       ..[i + 3] = oY + tW;
 
-    var distSq = sq(dx) + sq(dy), att = 1 - min(sq(distSq / 100), 1);
+    var q = sq(dx) + sq(dy), att = 1 - min(sq(q / 100), 1);
     _sc[x] = gs(att, sd == 1 ? 255 : 200);
   }
 }
@@ -249,11 +250,7 @@ class R {
 class G {
   R _r;
   L _l;
-  var _rm = Matrix2.identity(),
-      _mv = Vector2.zero(),
-      _s = 3.0,
-      _rs = 1.7,
-      _w = 0.2;
+  var _rm = Matrix2.identity(), _mv = vz.clone(), _s = 3.0, _rs = 1.7, _w = 0.2;
 
   num _bt = 0.0, _bf = 10, _ba = 2;
 
@@ -326,9 +323,9 @@ main() async {
   await SystemChrome.setEnabledSystemUIOverlays([]);
 
   var vs = Size(640, 360),
-      b = Offset.zero & vs,
+      b = oz & vs,
       dt = Float64List(16),
-      ba = await li('img/gui.png');
+      ba = await li('i/b.png');
 
   Offset o;
   B bs;
@@ -344,14 +341,13 @@ main() async {
 
     o = (sz / r - vs as Offset) * 0.5;
 
-    bs = await lb('data/buttons.json', r, 1 / r * w.devicePixelRatio,
-        Offset.zero & sz / r, ba);
+    bs = await lb('d/b.json', r, 1 / r * w.devicePixelRatio, oz & sz / r, ba);
   };
 
   h();
   w.onMetricsChanged = h;
 
-  var l = await ll('data/level.json'), g = G(vs, l), z = Duration.zero, pv = z;
+  var l = await ll('d/l.json'), g = G(vs, l), z = Duration.zero, pv = z;
 
   w.onBeginFrame = (n) {
     var r = PictureRecorder(),
@@ -374,7 +370,7 @@ main() async {
     var p = r.endRecording(),
         br = SceneBuilder()
           ..pushTransform(dt)
-          ..addPicture(Offset.zero, p)
+          ..addPicture(oz, p)
           ..pop();
 
     w
