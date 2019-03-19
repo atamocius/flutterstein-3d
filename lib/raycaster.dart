@@ -5,27 +5,25 @@ import 'package:vector_math/vector_math.dart';
 import 'utils.dart';
 import 'level.dart';
 
-var tW = 32, tH = 32;
+var vz = Vector2.zero(), c0 = 0xff000000;
 
 class Raycaster {
   Level _l;
   Size _s;
-  Vector2 p;
-  Vector2 d;
-  Vector2 pn;
-  var _pnhw = 0.85;
-  var _sd = Vector2.zero();
-  var _dd = Vector2.zero();
-  var _rd = Vector2.zero();
+  Vector2 p, d, pn;
   Image _i;
   int _is;
-  Float32List _st;
-  Float32List _sr;
+  Float32List _st, _sr;
   Int32List _sc;
-  var _sp = Paint();
-  var _se = 4;
   Rect _br;
   Paint _bp;
+  var tW = 32,
+      _hw = 0.85,
+      _sd = vz.clone(),
+      _dd = vz.clone(),
+      _rd = vz.clone(),
+      _sp = Paint(),
+      _se = 4;
 
   Raycaster(this._s, this._l)
       : p = _l.p.clone(),
@@ -37,19 +35,14 @@ class Raycaster {
           ..shader = Gradient.linear(
             Offset.zero,
             Offset(0, _s.height),
-            [
-              _l.c[0],
-              _l.c[1],
-              0xff000000,
-              0xff000000,
-              _l.f[1],
-              _l.f[0],
-            ].map((c) => Color(c)).toList(),
+            [_l.c[0], _l.c[1], c0, c0, _l.f[1], _l.f[0]]
+                .map((c) => Color(c))
+                .toList(),
             [0, 0.35, 0.45, 0.55, 0.65, 1],
           ) {
     pn = Vector2(d.y, -d.x)
       ..normalize()
-      ..scale(_pnhw);
+      ..scale(_hw);
 
     var w = _s.width ~/ 1, s = _se;
     _st = Float32List(w * s);
@@ -57,27 +50,24 @@ class Raycaster {
     _sc = Int32List(w);
   }
 
-  render(Canvas c) {
-    for (int x = 0; x < _s.width; x++) _raycast(x);
+  r(Canvas c) {
+    for (int x = 0; x < _s.width; x++) _rc(x);
     c.drawRect(_br, _bp);
     c.drawRawAtlas(_i, _st, _sr, _sc, BlendMode.modulate, null, _sp);
   }
 
-  _raycast(int x) {
-    var w = _s.width, h = _s.height;
-    var cX = 2 * x / w - 1;
+  _rc(int x) {
+    var w = _s.width, h = _s.height, cX = 2 * x / w - 1;
 
-    _rd.setZero();
     _rd
+      ..setZero()
       ..addScaled(pn, cX)
       ..add(d);
 
-    int mX = p.x.floor(), mY = p.y.floor();
+    int mX = p.x.floor(), mY = p.y.floor(), sX = 0, sY = 0, ht = 0, sd;
 
     _dd.x = iA(_rd.x);
     _dd.y = iA(_rd.y);
-
-    int sX = 0, sY = 0;
 
     if (_rd.x < 0) {
       sX = -1;
@@ -94,8 +84,6 @@ class Raycaster {
       _sd.y = (mY + 1.0 - p.y) * _dd.y;
     }
 
-    int ht = 0, sd;
-
     while (ht == 0) {
       if (_sd.x < _sd.y) {
         _sd.x += _dd.x;
@@ -110,14 +98,12 @@ class Raycaster {
       if (_l.get(mX, mY) > 0) ht = 1;
     }
 
-    var dx = mX - p.x, dy = mY - p.y;
-
-    var pwd =
-        sd == 0 ? (dx + (1 - sX) / 2) / _rd.x : (dy + (1 - sY) / 2) / _rd.y;
-
-    var lh = h / pwd;
-
-    var wX = sd == 0 ? p.y + pwd * _rd.y : p.x + pwd * _rd.x;
+    var dx = mX - p.x,
+        dy = mY - p.y,
+        pwd =
+            sd == 0 ? (dx + (1 - sX) / 2) / _rd.x : (dy + (1 - sY) / 2) / _rd.y,
+        lh = h / pwd,
+        wX = sd == 0 ? p.y + pwd * _rd.y : p.x + pwd * _rd.x;
     wX = fr(wX);
 
     int tX = (wX * tW).floor();
@@ -126,9 +112,10 @@ class Raycaster {
 
     var tn = _l.get(mX, mY) - 1,
         oX = tn % _is * tW / 1,
-        oY = tn ~/ _is * tH / 1;
-
-    var i = x * _se, sc = lh / tH, ds = -lh / 2 + h / 2;
+        oY = tn ~/ _is * tW / 1,
+        i = x * _se,
+        sc = lh / tW,
+        ds = -lh / 2 + h / 2;
 
     _st
       ..[i + 0] = sc
@@ -139,10 +126,9 @@ class Raycaster {
       ..[i + 0] = oX + tX
       ..[i + 1] = oY
       ..[i + 2] = oX + tX + 1 / sc
-      ..[i + 3] = oY + tH;
+      ..[i + 3] = oY + tW;
 
-    var distSq = sq(dx) + sq(dy);
-    var att = 1 - min(sq(distSq / 100), 1);
+    var distSq = sq(dx) + sq(dy), att = 1 - min(sq(distSq / 100), 1);
     _sc[x] = gs(att, sd == 1 ? 255 : 200);
   }
 }

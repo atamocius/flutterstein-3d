@@ -18,13 +18,13 @@ class Buttons {
         e = List<Rect>.from(u),
         p = Paint();
 
-  render(Canvas c) {
+  rd(Canvas c) {
     c.drawAtlas(i, t, e, o, BlendMode.dstIn, null, p);
   }
 
   bool b(int b) => s & m[b] > 0;
 
-  update(List<PointerData> p) {
+  ud(List<PointerData> p) {
     s = 0;
     for (final d in p)
       if (d.change == PointerChange.up)

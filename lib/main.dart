@@ -55,11 +55,11 @@ main() async {
       ..translate(o.dx, o.dy)
       ..clipRect(b);
     g
-      ..update(t, bs.b)
-      ..render(c);
+      ..u(t, bs.b)
+      ..r(c);
     c.restore();
 
-    bs.render(c);
+    bs.rd(c);
 
     var p = r.endRecording(),
         br = SceneBuilder()
@@ -74,5 +74,5 @@ main() async {
 
   w
     ..scheduleFrame()
-    ..onPointerDataPacket = (p) => bs.update(p.data);
+    ..onPointerDataPacket = (p) => bs.ud(p.data);
 }
