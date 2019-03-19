@@ -21,9 +21,11 @@ On-screen controls have also been implemented using `PointerData`, with _inflate
 
 ## Running the app
 
-I highly recommend running this on Android devices since that is where I have been testing the app on.
+```bash
+flutter run --release
+```
 
-Theoretically, it should also run on iOS since there is no platform specific code or configuration employed.
+I highly recommend running this on _Android_ devices since that is where I have been testing the app on. Theoretically, it should also run on iOS since there is no platform specific code or configuration employed.
 
 > ### Orientation
 >
