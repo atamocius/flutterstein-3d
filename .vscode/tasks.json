@@ -1,0 +1,19 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Android: Build (Debug)",
+      "type": "shell",
+      "problemMatcher": [],
+      "command": "flutter",
+      "args": ["build", "apk"]
+    },
+    {
+      "label": "Android: Build (Release)",
+      "type": "shell",
+      "problemMatcher": [],
+      "command": "flutter",
+      "args": ["build", "apk", "--release"]
+    }
+  ]
+}
