@@ -1,8 +1,7 @@
 name: flutterstein_3d
 description: A 3D raycaster implemented in Flutter.
 
-author:
-  - Daniel Anton Mata <anton.mata@gmail.com>
+author: Daniel Anton Mata <anton.mata@gmail.com>
 
 # The following defines the version and build number for your application.
 # A version number is three numbers separated by dots, like 1.2.43
