@@ -3,6 +3,7 @@
 A 3D raycaster implemented in Flutter.
 
 > This app was submitted as an entry to the [Flutter 5KB Challenge](https://flutter.dev/create).
+> ![Badge](https://api.accredible.com/v1/frontend/credential_website_embed_image/badge/12977835?key=d2bd2a8f668b1fcd7a3f880a0a6a4ad59217595a78820ddb31ab81f0dcd87898?raw=true)
 
 ![Gameplay 0](/captures/gameplay0_320x180.gif?raw=true)
 ![Gameplay 1](/captures/gameplay1_320x180.gif?raw=true)
