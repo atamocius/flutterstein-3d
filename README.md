@@ -2,6 +2,8 @@
 
 A 3D raycaster implemented in Flutter.
 
+> For anyone looking for the _original / unminified_ code, there is a branch named `prior-to-reduction` which is pretty much the code prior to the minification.
+ 
 > This app was submitted as an entry to the [Flutter 5KB Challenge](https://flutter.dev/create).
 
 ![Gameplay 0](/captures/gameplay0_320x180.gif?raw=true)
